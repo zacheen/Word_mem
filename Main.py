@@ -37,7 +37,11 @@ class Words :
             random_word = [random_word]
         all_words = self.new_word_list + random_word + self.time_past_list + self.old_word_list
         print("總共寫入單字數量 : ", len(all_words))
-        with open(SETT.word_file_path.replace(".json","_after.json"), "w", encoding='UTF-8') as fw:
+        with open(SETT.word_file_path, "w", encoding='UTF-8') as fw:
+            json.dump(all_words, fw, indent = 4, ensure_ascii=False)
+        # 備份
+        date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
+        with open(SETT.word_file_path.replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
 if __name__ == "__main__" :
@@ -52,7 +56,8 @@ if __name__ == "__main__" :
     # UI 介面
     window = tk.Tk()
     window.title('word_mem')
-    window.state("zoomed")
+    # window.state("zoomed") # 有BUG 會直接點到後面
+    window.geometry("900x500+350+150")
     word_show_weight = 0.2
 
     show_txt = tk.Button(window,                 # 文字標示所在視窗
@@ -107,7 +112,12 @@ if __name__ == "__main__" :
         switch_button()
 
     def test_fail(word):
-        word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+        next_day = 1
+        if word["status"] > 11 :
+            # 如果已經進入長期記憶 又錯誤的話要確認有沒有進入長期記憶
+            # 因此要延後幾天再確認一次
+            next_day = 7
+        word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
         words.add_word(rand_word)
         switch_button()
