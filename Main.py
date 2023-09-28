@@ -4,6 +4,7 @@ from random import randrange
 import Settings as SETT
 import tkinter as tk
 
+from Util import *
 class Words :
     def __init__(self):
         self.now_time = datetime.now()
@@ -50,15 +51,16 @@ if __name__ == "__main__" :
 
     # UI 介面
     window = tk.Tk()
-    window.title('Hello World')
+    window.title('word_mem')
     window.state("zoomed")
     word_show_weight = 0.2
 
-    show_txt = tk.Label(window,                 # 文字標示所在視窗
+    show_txt = tk.Button(window,                 # 文字標示所在視窗
         text = '英文單字',  # 顯示文字
         bg = '#EEBB00',         #  背景顏色
         font = ('Arial', 12),   # 字型與大小
-        width = 15, height = 2  # 文字標示尺寸   
+        width = 15, height = 2,  # 文字標示尺寸  
+        command = lambda : word_to_sound(rand_word["eng"]),
     )
     show_txt.place(relx=0,rely=0,relheight=word_show_weight,relwidth=1)
 
@@ -66,6 +68,7 @@ if __name__ == "__main__" :
         global rand_word
         rand_word = words.random_within_date()
         show_txt.config(text=rand_word["eng"])
+        word_to_sound(rand_word["eng"])
         print(rand_word)
 
     # 按鈕初始化
@@ -96,16 +99,18 @@ if __name__ == "__main__" :
     
     # 按鈕 function
     def test_pass(word):
-        switch_button()
+        print(word["status"])
+        print(SETT.DAYS[word["status"]])
         word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
         word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
         words.add_word(rand_word)
+        switch_button()
 
     def test_fail(word):
-        switch_button()
         word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
         words.add_word(rand_word)
+        switch_button()
 
     def show_ans():
         switch_button()
