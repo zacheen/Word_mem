@@ -25,7 +25,11 @@ class Words :
     # 方法1 : 隨機直到日期以內
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
     def random_within_date(self):
-        return self.time_past_list.pop(randrange(len(self.time_past_list)))
+        NEAR_FIRST = 100 # 最近看過的項目優先隨機到
+        rand_range = len(self.time_past_list)
+        if NEAR_FIRST > 0 :
+            rand_range = min(rand_range, NEAR_FIRST)
+        return self.time_past_list.pop(randrange(rand_range))
     
     def add_word(self, item):
         self.new_word_list.insert(0,item) # ?? 有可能會花很久
