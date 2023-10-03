@@ -57,7 +57,7 @@ if __name__ == "__main__" :
     window = tk.Tk()
     window.title('word_mem')
     # window.state("zoomed") # 有BUG 會直接點到後面
-    window.geometry("900x500+350+150")
+    window.geometry("900x500+350+100")
     word_show_weight = 0.2
 
     show_txt = tk.Button(window,                 # 文字標示所在視窗
@@ -72,8 +72,9 @@ if __name__ == "__main__" :
     def random_a_word():
         global rand_word
         rand_word = words.random_within_date()
-        show_txt.config(text=rand_word["eng"])
-        word_to_sound(rand_word["eng"])
+        show_str = rand_word["eng"]
+        show_txt.config(text = show_str )
+        word_to_sound(show_str)
         print(rand_word)
 
     # 按鈕初始化
@@ -94,7 +95,10 @@ if __name__ == "__main__" :
             button_status = 0
         else :
             # change to know
-            show_txt.config(text=rand_word["chi"])
+            show_str = rand_word["chi"]
+            if rand_word["association"] != "no" :
+                show_str += "\n" +rand_word["association"]
+            show_txt.config(text=show_str)
             button_test_pass.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.5)
             button_test_fail.place(relx=0.5,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.5)
             button_show_ans.place_forget()
