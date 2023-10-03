@@ -62,12 +62,12 @@ if __name__ == "__main__" :
     window.title('word_mem')
     # window.state("zoomed") # 有BUG 會直接點到後面
     window.geometry("900x500+350+100")
-    word_show_weight = 0.2
+    word_show_weight = 0.4
 
     show_txt = tk.Button(window,                 # 文字標示所在視窗
         text = '英文單字',  # 顯示文字
         bg = '#EEBB00',         #  背景顏色
-        font = ('Arial', 12),   # 字型與大小
+        font = ('Arial', 15),   # 字型與大小
         width = 15, height = 2,  # 文字標示尺寸  
         command = lambda : word_to_sound(rand_word["eng"]),
     )
@@ -82,9 +82,9 @@ if __name__ == "__main__" :
         print(rand_word)
 
     # 按鈕初始化
-    button_show_ans = tk.Button(window,text = '顯示翻譯')
-    button_test_pass = tk.Button(window,text = '知道',)
-    button_test_fail = tk.Button(window,text = '不知道')
+    button_show_ans = tk.Button(window,text = '顯示翻譯',font = ('黑體', 15))
+    button_test_pass = tk.Button(window,text = '知道',font = ('黑體', 15))
+    button_test_fail = tk.Button(window,text = '不知道',font = ('黑體', 15))
 
     button_status = 2 # 2 : init / 1 : show ans / 0 : Know
     def switch_button():
