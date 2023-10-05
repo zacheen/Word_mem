@@ -99,7 +99,7 @@ if __name__ == "__main__" :
             button_status = 0
         else :
             # change to know
-            show_str = rand_word["chi"]
+            show_str = show_txt.cget("text") + "\n" +rand_word["chi"]
             if rand_word["association"] != "no" :
                 show_str += "\n" +rand_word["association"]
             show_txt.config(text=show_str)
