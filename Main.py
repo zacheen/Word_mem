@@ -23,6 +23,11 @@ class Words :
         self.NEAR_FIRST += self.start_indx
         self.rand_before = set()
 
+        # 處理每個字
+        for indx in range(len(self.old_word_list)):
+            if "similar" not in self.old_word_list[indx] :
+                self.old_word_list[indx]["similar"] = []
+
     # 方法1 : 隨機直到日期以內
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
     def random_within_date(self):
@@ -92,6 +97,7 @@ if __name__ == "__main__" :
     # 按鈕初始化
     button_show_ans = tk.Button(window,text = '顯示翻譯',font = ('黑體', 15))
     button_test_pass = tk.Button(window,text = '知道',font = ('黑體', 15))
+    button_test_again = tk.Button(window,text = '沒有及時反應',font = ('黑體', 15))
     button_test_fail = tk.Button(window,text = '不知道',font = ('黑體', 15))
 
     button_status = 2 # 2 : init / 1 : show ans / 0 : Know
@@ -101,6 +107,7 @@ if __name__ == "__main__" :
             # change to show ans
             if button_status != 2 :
                 button_test_pass.place_forget()
+                button_test_again.place_forget()
                 button_test_fail.place_forget()
             random_a_word()
             button_show_ans.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=1)
@@ -110,12 +117,17 @@ if __name__ == "__main__" :
             show_str = show_txt.cget("text") + " " +rand_word["chi"]
             if rand_word["association"] != "no" :
                 show_str += "\n" +rand_word["association"]
-            if "other" in rand_word :
+            if "other" in rand_word and len(rand_word["other"])>0 :
                 for other_type in rand_word["other"] :
                     show_str += "\n" + other_type
+            if "similar" in rand_word and len(rand_word["similar"])>0 :
+                show_str += "\n" + "similar"
+                for other_type in rand_word["similar"] :
+                    show_str += "\n" + other_type
             show_txt.config(text=show_str)
-            button_test_pass.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.5)
-            button_test_fail.place(relx=0.5,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.5)
+            button_test_pass.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.4)
+            button_test_again.place(relx=0.4,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.2)
+            button_test_fail.place(relx=0.6,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.4)
             button_show_ans.place_forget()
             button_status = 1
         # print("switch finish now button_status :",button_status)
@@ -123,10 +135,13 @@ if __name__ == "__main__" :
     
     # 按鈕 function
     def test_pass(word):
-        # print(word["status"])
-        # print(SETT.DAYS[word["status"]])
         word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
         word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
+        words.add_word(rand_word)
+        switch_button()
+
+    def test_again(word):
+        word["date"] = (datetime.now() + timedelta(days=3)).strftime(SETT.DATE_FORMAT)
         words.add_word(rand_word)
         switch_button()
 
@@ -146,6 +161,7 @@ if __name__ == "__main__" :
 
     button_show_ans.config(command = show_ans)
     button_test_pass.config(command = lambda : test_pass(rand_word))
+    button_test_again.config(command = lambda : test_again(rand_word))
     button_test_fail.config(command = lambda : test_fail(rand_word))
     
     # # << 執行主程式 >>
