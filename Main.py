@@ -19,7 +19,7 @@ class Words :
             if word_last_date < self.now_time :
                 self.start_indx = indx
                 break
-        self.NEAR_FIRST = 50 # 最近看過的項目優先隨機到
+        self.NEAR_FIRST = 100 # 最近看過的項目優先隨機到
         self.NEAR_FIRST += self.start_indx
         self.rand_before = set()
 
@@ -98,11 +98,11 @@ if __name__ == "__main__" :
         word_to_sound(show_str)
 
     # 按鈕初始化
-    button_show_ans = tk.Button(window,text = '顯示翻譯',font = ('黑體', 15))
-    button_test_pass = tk.Button(window,text = '知道',font = ('黑體', 15))
+    button_show_ans = tk.Button(window,text = '顯示翻譯(space)',font = ('黑體', 15))
+    button_test_pass = tk.Button(window,text = '知道(left)',font = ('黑體', 15))
     button_test_again = tk.Button(window,text = '沒有及時反應',font = ('黑體', 15))
     button_test_hard = tk.Button(window,text = '難且不常出現',font = ('黑體', 15))
-    button_test_fail = tk.Button(window,text = '不知道',font = ('黑體', 15))
+    button_test_fail = tk.Button(window,text = '不知道(right)',font = ('黑體', 15))
 
     button_status = 2 # 2 : init / 1 : show ans / 0 : Know
     def switch_button():
@@ -182,6 +182,23 @@ if __name__ == "__main__" :
     button_test_again.config(command = lambda : test_again(rand_word))
     button_test_hard.config(command = lambda : test_hard(rand_word))
     button_test_fail.config(command = lambda : test_fail(rand_word))
+
+    # 按鍵偵測
+    from pynput import keyboard
+    def on_release(key):
+        if button_status > 0:
+            if key == keyboard.Key.left:
+                test_pass(rand_word)
+            elif key == keyboard.Key.right:
+                test_fail(rand_word)
+        else :
+            if key == keyboard.Key.space:
+                show_ans()
+    # Collect events until released
+    listener = keyboard.Listener(on_release=on_release)
+    listener.start()
     
     # # << 執行主程式 >>
     window.mainloop()
+
+    listener.stop()
