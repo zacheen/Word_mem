@@ -45,8 +45,11 @@ class Words :
                     self.NEAR_FIRST += 1
                     self.rand_before.add(self.old_word_list[indx]["eng"])
     
-    def add_word(self, item):
+    def add_word_first(self, item):
         self.new_word_list.insert(0,item) # ?? 有可能會花很久
+
+    def add_word_last(self, item):
+        self.new_word_list.append(item) # ?? 有可能會花很久
 
     def save(self, random_word = None):
         if random_word == None :
@@ -98,6 +101,7 @@ if __name__ == "__main__" :
     button_show_ans = tk.Button(window,text = '顯示翻譯',font = ('黑體', 15))
     button_test_pass = tk.Button(window,text = '知道',font = ('黑體', 15))
     button_test_again = tk.Button(window,text = '沒有及時反應',font = ('黑體', 15))
+    button_test_hard = tk.Button(window,text = '難且不常出現',font = ('黑體', 15))
     button_test_fail = tk.Button(window,text = '不知道',font = ('黑體', 15))
 
     button_status = 2 # 2 : init / 1 : show ans / 0 : Know
@@ -108,6 +112,7 @@ if __name__ == "__main__" :
             if button_status != 2 :
                 button_test_pass.place_forget()
                 button_test_again.place_forget()
+                button_test_hard.place_forget()
                 button_test_fail.place_forget()
             random_a_word()
             button_show_ans.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=1)
@@ -125,9 +130,18 @@ if __name__ == "__main__" :
                 for other_type in rand_word["similar"] :
                     show_str += "\n" + other_type
             show_txt.config(text=show_str)
-            button_test_pass.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.4)
-            button_test_again.place(relx=0.4,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.2)
-            button_test_fail.place(relx=0.6,rely=word_show_weight,relheight=1-word_show_weight,relwidth=0.4)
+            place_weight = [2,1,1,2]
+            weight_sum = sum(place_weight)
+            place_weight = [each_weight / weight_sum for each_weight in place_weight]
+            relx_pos = []
+            total_relx = 0.0
+            for percentage in place_weight :
+                relx_pos.append(total_relx)
+                total_relx += percentage
+            button_test_pass.place(relx=relx_pos[0],rely=word_show_weight,relheight=1-word_show_weight,relwidth=place_weight[0])
+            button_test_again.place(relx=relx_pos[1],rely=word_show_weight,relheight=1-word_show_weight,relwidth=place_weight[1])
+            button_test_hard.place(relx=relx_pos[2],rely=word_show_weight,relheight=1-word_show_weight,relwidth=place_weight[2])
+            button_test_fail.place(relx=relx_pos[3],rely=word_show_weight,relheight=1-word_show_weight,relwidth=place_weight[3])
             button_show_ans.place_forget()
             button_status = 1
         # print("switch finish now button_status :",button_status)
@@ -137,12 +151,16 @@ if __name__ == "__main__" :
     def test_pass(word):
         word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
         word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
-        words.add_word(rand_word)
+        words.add_word_first(rand_word)
         switch_button()
 
     def test_again(word):
         word["date"] = (datetime.now() + timedelta(days=3)).strftime(SETT.DATE_FORMAT)
-        words.add_word(rand_word)
+        words.add_word_first(rand_word)
+        switch_button()
+
+    def test_hard(word):
+        words.add_word_last(rand_word)
         switch_button()
 
     def test_fail(word):
@@ -153,7 +171,7 @@ if __name__ == "__main__" :
             next_day = 7
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
-        words.add_word(rand_word)
+        words.add_word_first(rand_word)
         switch_button()
 
     def show_ans():
@@ -162,6 +180,7 @@ if __name__ == "__main__" :
     button_show_ans.config(command = show_ans)
     button_test_pass.config(command = lambda : test_pass(rand_word))
     button_test_again.config(command = lambda : test_again(rand_word))
+    button_test_hard.config(command = lambda : test_hard(rand_word))
     button_test_fail.config(command = lambda : test_fail(rand_word))
     
     # # << 執行主程式 >>
