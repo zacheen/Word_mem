@@ -19,14 +19,14 @@ class Words :
             if word_last_date < self.now_time :
                 self.start_indx = indx
                 break
-        self.NEAR_FIRST = 100 # 最近看過的項目優先隨機到
+        self.NEAR_FIRST = 150 # 最近看過的項目優先隨機到
         self.NEAR_FIRST += self.start_indx
         self.rand_before = set()
 
-        # 處理每個字
-        for indx in range(len(self.old_word_list)):
-            if "similar" not in self.old_word_list[indx] :
-                self.old_word_list[indx]["similar"] = []
+        # # 處理每個字
+        # for indx in range(len(self.old_word_list)):
+        #     if "similar" not in self.old_word_list[indx] :
+        #         self.old_word_list[indx]["similar"] = []
 
     # 方法1 : 隨機直到日期以內
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
@@ -56,7 +56,7 @@ class Words :
             random_word = []
         else :
             random_word = [random_word]
-        all_words = self.new_word_list + random_word + self.old_word_list
+        all_words = random_word + self.new_word_list + self.old_word_list
         print("總共寫入單字數量 : ", len(all_words))
         with open(SETT.word_file_path, "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
@@ -79,7 +79,7 @@ if __name__ == "__main__" :
     window.title('word_mem')
     # window.state("zoomed") # 有BUG 會直接點到後面
     window.geometry("900x500+350+100")
-    word_show_weight = 0.4
+    word_show_weight = 0.5
 
     show_txt = tk.Button(window,                 # 文字標示所在視窗
         text = '英文單字',  # 顯示文字
@@ -94,8 +94,8 @@ if __name__ == "__main__" :
         global rand_word
         rand_word = words.random_within_date()
         show_str = rand_word["eng"]
+        # word_to_sound(show_str) # 出現新單字要不要順便聽發音
         show_txt.config(text = show_str )
-        word_to_sound(show_str)
 
     # 按鈕初始化
     button_show_ans = tk.Button(window,text = '顯示翻譯(space)',font = ('黑體', 15))
@@ -123,10 +123,11 @@ if __name__ == "__main__" :
             if rand_word["association"] != "no" :
                 show_str += "\n" +rand_word["association"]
             if "other" in rand_word and len(rand_word["other"])>0 :
+                show_str += "\n" + "other type : "
                 for other_type in rand_word["other"] :
                     show_str += "\n" + other_type
             if "similar" in rand_word and len(rand_word["similar"])>0 :
-                show_str += "\n" + "similar"
+                show_str += "\n" + "similar : "
                 for other_type in rand_word["similar"] :
                     show_str += "\n" + other_type
             show_txt.config(text=show_str)
@@ -175,6 +176,7 @@ if __name__ == "__main__" :
         switch_button()
 
     def show_ans():
+        word_to_sound(rand_word["eng"])
         switch_button()
 
     button_show_ans.config(command = show_ans)
@@ -192,8 +194,10 @@ if __name__ == "__main__" :
             elif key == keyboard.Key.right:
                 test_fail(rand_word)
         else :
-            if key == keyboard.Key.space:
+            if key == keyboard.Key.up:
                 show_ans()
+        if key == keyboard.Key.down:
+            word_to_sound(rand_word["eng"])
     # Collect events until released
     listener = keyboard.Listener(on_release=on_release)
     listener.start()
