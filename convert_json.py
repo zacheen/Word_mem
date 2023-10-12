@@ -15,7 +15,9 @@ for lines in fr :
         "status" : int(w_info[1]),
         "eng" : w_info[2],
         "chi" : w_info[3],
-        "association" : w_info[4]}
+        "association" : w_info[4],
+        "other" : [],
+        "similar" : [],}
     all_word.append(each_Word)
 
 fr.close()

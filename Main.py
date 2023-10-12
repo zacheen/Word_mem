@@ -1,23 +1,32 @@
 import json
+import sys
 from datetime import datetime,timedelta 
 from random import randrange
 import Settings as SETT
 import tkinter as tk
+import tkinter.messagebox as messagebox
 
 from Util import *
+
+def til_the_end():
+    messagebox.showinfo(title = 'Finish', # 視窗標題
+        message = 'Congrats! Until the end!')   # 訊息內容
+    sys.exit()
 class Words :
     def __init__(self):
         self.now_time = datetime.now()
         fr = open(SETT.word_file_path, "r")
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
-        print("總共讀取單字數量 : ", len(self.old_word_list))
+        print("總共讀取單字數量 :", len(self.old_word_list))
         self.new_word_list = []
         # 找 random 起使位置
+        self.start_indx = 0
         for indx in range(len(self.old_word_list)):
             word_last_date = self.old_word_list[indx]["date"]
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
                 self.start_indx = indx
+                # print("self.start_indx", self.start_indx)
                 break
         self.NEAR_FIRST = 150 # 最近看過的項目優先隨機到
         self.NEAR_FIRST += self.start_indx
@@ -34,8 +43,13 @@ class Words :
         rand_range = len(self.old_word_list)
         if self.NEAR_FIRST > 0 :
             rand_range = min(rand_range, self.NEAR_FIRST)
+        if self.start_indx == rand_range :
+            return None
+        # print("rand",self.start_indx, rand_range)
         rand_indx = randrange(self.start_indx, rand_range)
-        for indx in range(rand_indx, len(self.old_word_list)) :
+        indx = rand_indx
+        while True :
+            # print("in loop", indx, rand_indx)
             word_last_date = self.old_word_list[indx]["date"]
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
@@ -44,6 +58,11 @@ class Words :
                 if self.old_word_list[indx]["eng"] not in self.rand_before :
                     self.NEAR_FIRST += 1
                     self.rand_before.add(self.old_word_list[indx]["eng"])
+            indx += 1
+            if indx == len(self.old_word_list) :
+                indx = 0
+            if indx == rand_indx :
+                return None
     
     def add_word_first(self, item):
         self.new_word_list.insert(0,item) # ?? 有可能會花很久
@@ -57,7 +76,7 @@ class Words :
         else :
             random_word = [random_word]
         all_words = random_word + self.new_word_list + self.old_word_list
-        print("總共寫入單字數量 : ", len(all_words))
+        print("總共寫入單字數量 :", len(all_words))
         with open(SETT.word_file_path, "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
@@ -93,6 +112,8 @@ if __name__ == "__main__" :
     def random_a_word():
         global rand_word
         rand_word = words.random_within_date()
+        if rand_word == None :
+            til_the_end()
         show_str = rand_word["eng"]
         # word_to_sound(show_str) # 出現新單字要不要順便聽發音
         show_txt.config(text = show_str )
@@ -150,8 +171,9 @@ if __name__ == "__main__" :
     
     # 按鈕 function
     def test_pass(word):
-        word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
+        # word["status"] = min(max(word["status"]+1,11), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
         word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
+        word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
         words.add_word_first(rand_word)
         switch_button()
 
@@ -161,6 +183,7 @@ if __name__ == "__main__" :
         switch_button()
 
     def test_hard(word):
+        word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
         words.add_word_last(rand_word)
         switch_button()
 
