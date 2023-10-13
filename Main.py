@@ -184,6 +184,7 @@ if __name__ == "__main__" :
 
     def test_hard(word):
         word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+        word["status"] = max(word["status"]-1, 0)
         words.add_word_last(rand_word)
         switch_button()
 
@@ -216,6 +217,8 @@ if __name__ == "__main__" :
                 test_pass(rand_word)
             elif key == keyboard.Key.right:
                 test_fail(rand_word)
+            elif key == keyboard.Key.up:
+                word_to_sound(rand_word["eng"])
         else :
             if key == keyboard.Key.up:
                 show_ans()
