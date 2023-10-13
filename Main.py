@@ -17,7 +17,6 @@ class Words :
         self.now_time = datetime.now()
         fr = open(SETT.word_file_path, "r")
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
-        print("總共讀取單字數量 :", len(self.old_word_list))
         self.new_word_list = []
         # 找 random 起使位置
         self.start_indx = 0
@@ -26,16 +25,20 @@ class Words :
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
                 self.start_indx = indx
-                # print("self.start_indx", self.start_indx)
+                print("self.start_indx", self.start_indx)
                 break
         self.NEAR_FIRST = 150 # 最近看過的項目優先隨機到
         self.NEAR_FIRST += self.start_indx
         self.rand_before = set()
 
-        # # 處理每個字
-        # for indx in range(len(self.old_word_list)):
-        #     if "similar" not in self.old_word_list[indx] :
-        #         self.old_word_list[indx]["similar"] = []
+        # 處理每個字
+        know_count = 0
+        for indx in range(len(self.old_word_list)):
+            if self.old_word_list[indx]["status"] > 7 :
+                know_count += 1
+        print("總共讀取單字數量 :", len(self.old_word_list))
+        print("學會單字數量 :", know_count)
+        print("錯誤單字數量 :", len(self.old_word_list) - know_count)
 
     # 方法1 : 隨機直到日期以內
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
@@ -53,6 +56,7 @@ class Words :
             word_last_date = self.old_word_list[indx]["date"]
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
+                self.last_rand_indx = indx
                 return self.old_word_list.pop(indx)
             else :
                 if self.old_word_list[indx]["eng"] not in self.rand_before :
@@ -71,11 +75,9 @@ class Words :
         self.new_word_list.append(item) # ?? 有可能會花很久
 
     def save(self, random_word = None):
-        if random_word == None :
-            random_word = []
-        else :
-            random_word = [random_word]
-        all_words = random_word + self.new_word_list + self.old_word_list
+        if random_word != None :
+            self.old_word_list.insert(self.last_rand_indx, random_word)
+        all_words = self.new_word_list + self.old_word_list
         print("總共寫入單字數量 :", len(all_words))
         with open(SETT.word_file_path, "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
