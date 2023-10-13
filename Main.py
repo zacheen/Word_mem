@@ -25,20 +25,24 @@ class Words :
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
                 self.start_indx = indx
-                print("self.start_indx", self.start_indx)
+                print("今日已讀單字", self.start_indx) # 有點不准，不過差不多啦
                 break
         self.NEAR_FIRST = 150 # 最近看過的項目優先隨機到
         self.NEAR_FIRST += self.start_indx
         self.rand_before = set()
 
         # 處理每個字
+        status_count = 0
         know_count = 0
         for indx in range(len(self.old_word_list)):
-            if self.old_word_list[indx]["status"] > 7 :
+            if self.old_word_list[indx]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
+            status_count += self.old_word_list[indx]["status"]
         print("總共讀取單字數量 :", len(self.old_word_list))
         print("學會單字數量 :", know_count)
         print("錯誤單字數量 :", len(self.old_word_list) - know_count)
+        print("status 總和 :", status_count)
+        print("status 平均 :", status_count / len(self.old_word_list))
 
     # 方法1 : 隨機直到日期以內
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
@@ -78,7 +82,19 @@ class Words :
         if random_word != None :
             self.old_word_list.insert(self.last_rand_indx, random_word)
         all_words = self.new_word_list + self.old_word_list
+        print("----------------------------------------------")
+        status_count = 0
+        know_count = 0
         print("總共寫入單字數量 :", len(all_words))
+        for indx in range(len(all_words)):
+            if all_words[indx]["status"] >= SETT.long_term_mem_threshold :
+                know_count += 1
+            status_count += all_words[indx]["status"]
+        print("學會單字數量 :", know_count)
+        print("錯誤單字數量 :", len(all_words) - know_count)
+        print("status 總和 :", status_count)
+        print("status 平均 :", status_count / len(all_words))
+        # 寫入
         with open(SETT.word_file_path, "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
@@ -142,7 +158,7 @@ if __name__ == "__main__" :
             button_status = 0
         else :
             # change to know
-            show_str = show_txt.cget("text") + " " +rand_word["chi"]
+            show_str = f'{show_txt.cget("text")} {rand_word["chi"]} ({rand_word["status"]})'
             if rand_word["association"] != "no" :
                 show_str += "\n" +rand_word["association"]
             if "other" in rand_word and len(rand_word["other"])>0 :
@@ -192,7 +208,7 @@ if __name__ == "__main__" :
 
     def test_fail(word):
         next_day = 1
-        if word["status"] > 11 :
+        if word["status"] > SETT.long_term_mem_threshold :
             # 如果已經進入長期記憶 又錯誤的話要確認有沒有進入長期記憶
             # 因此要延後幾天再確認一次
             next_day = 7
