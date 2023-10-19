@@ -243,11 +243,13 @@ if __name__ == "__main__" :
                 test_fail(rand_word)
             elif key == keyboard.Key.up:
                 word_to_sound(rand_word["eng"])
+            elif key == keyboard.Key.down:
+                test_again(rand_word)
         else :
             if key == keyboard.Key.up:
                 show_ans()
-        if key == keyboard.Key.down:
-            word_to_sound(rand_word["eng"])
+            elif key == keyboard.Key.left or key == keyboard.Key.right :
+                word_to_sound(rand_word["eng"])
     # Collect events until released
     listener = keyboard.Listener(on_release=on_release)
     listener.start()
