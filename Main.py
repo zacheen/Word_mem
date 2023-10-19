@@ -11,6 +11,7 @@ from Util import *
 def til_the_end():
     messagebox.showinfo(title = 'Finish', # 視窗標題
         message = 'Congrats! Until the end!')   # 訊息內容
+    print("今日進度已完成!")
     sys.exit()
 class Words :
     def __init__(self):
@@ -19,15 +20,15 @@ class Words :
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         self.new_word_list = []
         # 找 random 起使位置
-        self.start_indx = 0
+        self.start_indx = len(self.old_word_list)
         for indx in range(len(self.old_word_list)):
             word_last_date = self.old_word_list[indx]["date"]
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
                 self.start_indx = indx
-                print("今日已讀單字", self.start_indx) # 有點不准，不過差不多啦
                 break
-        self.NEAR_FIRST = 150 # 最近看過的項目優先隨機到
+        print("今日已讀單字", self.start_indx) # 有點不准，不過差不多啦
+        self.NEAR_FIRST = SETT.NEAR_FIRST # 最近看過的項目優先隨機到
         self.NEAR_FIRST += self.start_indx
         self.rand_before = set()
 
@@ -35,6 +36,8 @@ class Words :
         status_count = 0
         know_count = 0
         for indx in range(len(self.old_word_list)):
+            # if self.old_word_list[indx]["association"] == "no":
+            #     self.old_word_list[indx]["association"] = ""
             if self.old_word_list[indx]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
             status_count += self.old_word_list[indx]["status"]
@@ -73,10 +76,10 @@ class Words :
                 return None
     
     def add_word_first(self, item):
-        self.new_word_list.insert(0,item) # ?? 有可能會花很久
+        self.new_word_list.insert(0,item)
 
     def add_word_last(self, item):
-        self.new_word_list.append(item) # ?? 有可能會花很久
+        self.old_word_list.append(item)
 
     def save(self, random_word = None):
         if random_word != None :
@@ -159,7 +162,7 @@ if __name__ == "__main__" :
         else :
             # change to know
             show_str = f'{show_txt.cget("text")} {rand_word["chi"]} ({rand_word["status"]})'
-            if rand_word["association"] != "no" :
+            if rand_word["association"] :
                 show_str += "\n" +rand_word["association"]
             if "other" in rand_word and len(rand_word["other"])>0 :
                 show_str += "\n" + "other type : "
@@ -189,14 +192,17 @@ if __name__ == "__main__" :
     
     # 按鈕 function
     def test_pass(word):
-        # word["status"] = min(max(word["status"]+1,11), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
+        # word["status"] = min(max(word["status"]+1,long_term_mem_threshold+2), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
         word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
         word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
         words.add_word_first(rand_word)
         switch_button()
 
     def test_again(word):
-        word["date"] = (datetime.now() + timedelta(days=3)).strftime(SETT.DATE_FORMAT)
+        next_day = 1
+        if word["status"] > SETT.long_term_mem_threshold :
+            next_day = 3
+        word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         words.add_word_first(rand_word)
         switch_button()
 

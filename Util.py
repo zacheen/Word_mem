@@ -1,7 +1,10 @@
 import threading
+import Settings as SETT
 
 import requests
 def word_to_sound(word, language = "en"):
+    if SETT.PLAY_SOUND != True :
+        return
     class My_thread (threading.Thread):   #繼承父類threading.Thread
         def run(self): #把要執行的代碼寫到run函數里面 線程在創建後會直接運行run函數     
             url = f"http://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&tl={language}&q={word}"
@@ -9,6 +12,7 @@ def word_to_sound(word, language = "en"):
                 response = requests.get(url)
                 play_byte_mp3(response.content)
             except requests.exceptions.ConnectionError :
+                SETT.PLAY_SOUND = False
                 print("no network")
     My_thread().start()
 
