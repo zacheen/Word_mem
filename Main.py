@@ -28,9 +28,6 @@ class Words :
                 self.start_indx = indx
                 break
         print("今日已讀單字", self.start_indx) # 有點不准，不過差不多啦
-        self.NEAR_FIRST = SETT.NEAR_FIRST # 最近看過的項目優先隨機到
-        self.NEAR_FIRST += self.start_indx
-        self.rand_before = set()
 
         # 處理每個字
         status_count = 0
@@ -51,29 +48,26 @@ class Words :
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
     def random_within_date(self):
         rand_range = len(self.old_word_list)
-        if self.NEAR_FIRST > 0 :
-            rand_range = min(rand_range, self.NEAR_FIRST)
+        if SETT.NEAR_FIRST > 0 :
+            rand_range = min(rand_range, SETT.NEAR_FIRST+self.start_indx)
         if self.start_indx == rand_range :
             return None
         # print("rand",self.start_indx, rand_range)
         rand_indx = randrange(self.start_indx, rand_range)
-        indx = rand_indx
-        while True :
-            # print("in loop", indx, rand_indx)
-            word_last_date = self.old_word_list[indx]["date"]
+        now_indx = rand_indx
+        while len(self.old_word_list) > self.start_indx :
+            word_last_date = self.old_word_list[now_indx]["date"]
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
-                self.last_rand_indx = indx
-                return self.old_word_list.pop(indx)
+                self.last_rand_indx = now_indx
+                return self.old_word_list.pop(now_indx)
             else :
-                if self.old_word_list[indx]["eng"] not in self.rand_before :
-                    self.NEAR_FIRST += 1
-                    self.rand_before.add(self.old_word_list[indx]["eng"])
-            indx += 1
-            if indx == len(self.old_word_list) :
-                indx = 0
-            if indx == rand_indx :
-                return None
+                self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
+                self.start_indx += 1
+                now_indx += 1
+            if now_indx == len(self.old_word_list) :
+                now_indx = self.start_indx
+        return None
     
     def add_word_first(self, item):
         self.new_word_list.insert(0,item)
