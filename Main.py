@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 from datetime import datetime,timedelta 
 from random import randrange
 import Settings as SETT
@@ -13,6 +14,28 @@ def til_the_end():
         message = 'Congrats! Until the end!')   # 訊息內容
     print("今日進度已完成!")
     sys.exit()
+
+# 寫入今日錯誤紀錄 (紀錄的日期是隔天)
+wrong_word = []
+def write_wrong_word():
+    another_day = True
+    # 讀取檔案的日期
+    if os.path.isfile(SETT.WRONG_WORD_PATH) :
+        with open(SETT.WRONG_WORD_PATH, "r") as fr:
+            wrong_date = fr.readline()
+            wrong_date = datetime.strptime(wrong_date[:-1], SETT.DATE_FORMAT)
+            if wrong_date > datetime.now() :
+                another_day = False
+    fw = None
+    if another_day :
+        fw = open(SETT.WRONG_WORD_PATH, "w", encoding='UTF-8')
+        fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
+    else :
+        fw = open(SETT.WRONG_WORD_PATH, "a", encoding='UTF-8')
+    json.dump(wrong_word, fw, indent = 4, ensure_ascii=False)
+    fw.close()
+
+        
 class Words :
     def __init__(self):
         self.now_time = datetime.now()
@@ -106,6 +129,7 @@ if __name__ == "__main__" :
     def when_exit():
         global rand_word
         words.save(rand_word)
+        write_wrong_word()
     atexit.register(when_exit)
 
     # UI 介面
@@ -207,13 +231,14 @@ if __name__ == "__main__" :
         switch_button()
 
     def test_fail(word):
+        wrong_word.append(word)
         next_day = 1
         if word["status"] > SETT.long_term_mem_threshold :
             # 如果已經進入長期記憶 又錯誤的話要確認有沒有進入長期記憶
             # 因此要延後幾天再確認一次
             next_day = 7
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
-        word["status"] = max(word["status"]-1, 0)
+        word["status"] = max(word["status"]-2, 0)
         words.add_word_first(rand_word)
         switch_button()
 

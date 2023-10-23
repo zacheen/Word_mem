@@ -8,3 +8,5 @@ print("long_term indx :", long_term_mem_threshold)
 DATE_FORMAT = r"%Y/%m/%d"
 PLAY_SOUND = True
 # PLAY_SOUND = False
+WRONG_WORD_PATH = r"G:\我的雲端硬碟\__wrong_word.txt"
+
