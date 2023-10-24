@@ -2,7 +2,7 @@ import json
 import sys
 import os
 from datetime import datetime,timedelta 
-from random import randrange
+from random import randrange,choices
 import Settings as SETT
 import tkinter as tk
 import tkinter.messagebox as messagebox
@@ -37,9 +37,12 @@ def write_wrong_word():
 
         
 class Words :
-    def __init__(self):
+    def __init__(self, Settings):
+        self.word_file_path = Settings.word_file_path
+        self.NEAR_FIRST = Settings.NEAR_FIRST
+        self.weight = Settings.weight
         self.now_time = datetime.now()
-        fr = open(SETT.word_file_path, "r")
+        fr = open(self.word_file_path, "r")
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         self.new_word_list = []
         # 找 random 起使位置
@@ -50,6 +53,7 @@ class Words :
             if word_last_date < self.now_time :
                 self.start_indx = indx
                 break
+        print(f"--  {self.word_file_path}  --------------------------------")
         print("今日已讀單字", self.start_indx) # 有點不准，不過差不多啦
 
         # 處理每個字
@@ -71,8 +75,8 @@ class Words :
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
     def random_within_date(self):
         rand_range = len(self.old_word_list)
-        if SETT.NEAR_FIRST > 0 :
-            rand_range = min(rand_range, SETT.NEAR_FIRST+self.start_indx)
+        if self.NEAR_FIRST > 0 :
+            rand_range = min(rand_range, self.NEAR_FIRST+self.start_indx)
         if self.start_indx == rand_range :
             return None
         # print("rand",self.start_indx, rand_range)
@@ -98,11 +102,13 @@ class Words :
     def add_word_last(self, item):
         self.old_word_list.append(item)
 
-    def save(self, random_word = None):
+    def insert_back(self, random_word = None):
         if random_word != None :
             self.old_word_list.insert(self.last_rand_indx, random_word)
+
+    def save(self):
         all_words = self.new_word_list + self.old_word_list
-        print("----------------------------------------------")
+        print(f"--  {self.word_file_path}  --------------------------------")
         status_count = 0
         know_count = 0
         print("總共寫入單字數量 :", len(all_words))
@@ -115,20 +121,23 @@ class Words :
         print("status 總和 :", status_count)
         print("status 平均 :", status_count / len(all_words))
         # 寫入
-        with open(SETT.word_file_path, "w", encoding='UTF-8') as fw:
+        with open(self.word_file_path, "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
         date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
-        with open(SETT.word_file_path.replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
+        with open(self.word_file_path.replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
 if __name__ == "__main__" :
-    words = Words()
+    all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
+    rand_weights = tuple(each_json.weight for each_json in all_json)
+    print("rand_weights :",rand_weights)
     
     import atexit
     def when_exit():
         global rand_word
-        words.save(rand_word)
+        rand_json.insert_back(rand_word)
+        for each_json in all_json : each_json.save()
         write_wrong_word()
     atexit.register(when_exit)
 
@@ -150,7 +159,18 @@ if __name__ == "__main__" :
 
     def random_a_word():
         global rand_word
-        rand_word = words.random_within_date()
+        global rand_json
+        global rand_weights
+        while all_json :
+            rand_json = choices(all_json, weights=rand_weights, k = 1)[0]
+            rand_word = rand_json.random_within_date()
+            if rand_word == None :
+                print(rand_json.word_file_path, "已結束")
+                rand_json.save()
+                all_json.remove(rand_json)
+                rand_weights = tuple(each_json.weight for each_json in all_json)
+            else :
+                break
         if rand_word == None :
             til_the_end()
         show_str = rand_word["eng"]
@@ -213,7 +233,7 @@ if __name__ == "__main__" :
         # word["status"] = min(max(word["status"]+1,long_term_mem_threshold+2), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
         word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
         word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
-        words.add_word_first(rand_word)
+        rand_json.add_word_first(rand_word)
         switch_button()
 
     def test_again(word):
@@ -221,13 +241,13 @@ if __name__ == "__main__" :
         if word["status"] > SETT.long_term_mem_threshold :
             next_day = 3
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
-        words.add_word_first(rand_word)
+        rand_json.add_word_first(rand_word)
         switch_button()
 
     def test_hard(word):
         word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
-        words.add_word_last(rand_word)
+        rand_json.add_word_last(rand_word)
         switch_button()
 
     def test_fail(word):
@@ -239,7 +259,7 @@ if __name__ == "__main__" :
             next_day = 7
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-2, 0)
-        words.add_word_first(rand_word)
+        rand_json.add_word_first(rand_word)
         switch_button()
 
     def show_ans():
