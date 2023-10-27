@@ -125,7 +125,7 @@ class Words :
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
         date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
-        with open(self.word_file_path.replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
+        with open(self.word_file_path.replace(r"\word",r"\word\backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
 if __name__ == "__main__" :
