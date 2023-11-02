@@ -18,23 +18,30 @@ def til_the_end():
 # 寫入今日錯誤紀錄 (紀錄的日期是隔天)
 wrong_word = []
 def write_wrong_word():
+    global wrong_word
     another_day = True
     # 讀取檔案的日期
+    fr = None
     if os.path.isfile(SETT.WRONG_WORD_PATH) :
-        with open(SETT.WRONG_WORD_PATH, "r") as fr:
-            wrong_date = fr.readline()
-            wrong_date = datetime.strptime(wrong_date[:-1], SETT.DATE_FORMAT)
-            if wrong_date > datetime.now() :
-                another_day = False
-    fw = None
-    if another_day :
-        fw = open(SETT.WRONG_WORD_PATH, "w", encoding='UTF-8')
-        fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
+        fr = open(SETT.WRONG_WORD_PATH, "r")
+        wrong_date = fr.readline()
+        wrong_date = datetime.strptime(wrong_date[:-1], SETT.DATE_FORMAT)
+        if wrong_date > datetime.now() :
+            another_day = False
+    
+    if another_day or fr == None :
+        pass
     else :
-        fw = open(SETT.WRONG_WORD_PATH, "a", encoding='UTF-8')
+        read_in = fr.read()
+        old_wrong_word = json.loads(read_in)
+        wrong_word = old_wrong_word + wrong_word
+    if fr :
+        fr.close()
+    
+    fw = open(SETT.WRONG_WORD_PATH, "w", encoding='UTF-8')
+    fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
     json.dump(wrong_word, fw, indent = 4, ensure_ascii=False)
     fw.close()
-
         
 class Words :
     def __init__(self, Settings):
@@ -44,6 +51,7 @@ class Words :
         self.now_time = datetime.now()
         fr = open(self.word_file_path, "r")
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
+        fr.close()
         self.new_word_list = []
         # 找 random 起使位置
         self.start_indx = len(self.old_word_list)
