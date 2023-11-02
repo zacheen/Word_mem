@@ -185,6 +185,11 @@ if __name__ == "__main__" :
         # word_to_sound(show_str) # 出現新單字要不要順便聽發音
         show_txt.config(text = show_str )
 
+    def play_word_and_other():
+        eng_and_other = rand_word["eng"]
+        eng_and_other += ", ".join(each_other.split(" ")[0] for each_other in rand_word["other"])
+        word_to_sound(eng_and_other)
+    
     # 按鈕初始化
     button_show_ans = tk.Button(window,text = '顯示翻譯(space)',font = ('黑體', 15))
     button_test_pass = tk.Button(window,text = '知道(left)',font = ('黑體', 15))
@@ -271,7 +276,7 @@ if __name__ == "__main__" :
         switch_button()
 
     def show_ans():
-        word_to_sound(rand_word["eng"])
+        play_word_and_other()
         switch_button()
 
     button_show_ans.config(command = show_ans)
@@ -289,7 +294,7 @@ if __name__ == "__main__" :
             elif key == keyboard.Key.right:
                 test_fail(rand_word)
             elif key == keyboard.Key.up:
-                word_to_sound(rand_word["eng"])
+                play_word_and_other()
             elif key == keyboard.Key.down:
                 test_again(rand_word)
         else :
