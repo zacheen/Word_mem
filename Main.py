@@ -49,7 +49,7 @@ class Words :
         self.NEAR_FIRST = Settings.NEAR_FIRST
         self.weight = Settings.weight
         self.now_time = datetime.now()
-        fr = open(self.word_file_path, "r")
+        fr = open(self.word_file_path, "r", encoding='UTF-8')
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         fr.close()
         self.new_word_list = []
@@ -173,6 +173,19 @@ if __name__ == "__main__" :
             rand_json = choices(all_json, weights=rand_weights, k = 1)[0]
             rand_word = rand_json.random_within_date()
             if rand_word == None :
+                # 查看有沒有新的單字
+                new_word_path = rand_json.word_file_path.replace(".json","_new.json")
+                print("new_word_path :",new_word_path)
+                if os.path.isfile(new_word_path) :
+                    with open(new_word_path, "r", encoding='UTF-8') as new_fr:
+                        new_word_file = json.loads(new_fr.read())
+                        if new_word_file :
+                            rand_word = new_word_file.pop(0)
+                            with open(new_word_path, "w", encoding='UTF-8') as new_fw:
+                                json.dump(new_word_file, new_fw, indent = 4, ensure_ascii=False)
+                            rand_json.last_rand_indx = 0
+                            break
+                # 會執行到這裡代表沒有新的單字
                 print(rand_json.word_file_path, "已結束")
                 rand_json.save()
                 all_json.remove(rand_json)
