@@ -267,6 +267,7 @@ if __name__ == "__main__" :
         if word["status"] > SETT.long_term_mem_threshold :
             next_day = 3
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
+        word["status"] = max(word["status"]-1, 0)
         rand_json.add_word_first(rand_word)
         switch_button()
 
