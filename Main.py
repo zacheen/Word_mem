@@ -3,6 +3,7 @@ import sys
 import os
 from datetime import datetime,timedelta 
 from random import randrange,choices
+import copy
 import Settings as SETT
 import tkinter as tk
 import tkinter.messagebox as messagebox
@@ -16,9 +17,17 @@ def til_the_end():
     sys.exit()
 
 # 寫入今日錯誤紀錄 (紀錄的日期是隔天)
-wrong_word = []
+wrong_word_list = []
+def add_wrong_word(word):
+    global wrong_word_list
+    new_wrong_word = copy.deepcopy(word)
+    new_wrong_word["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
+    wrong_word_list.append(new_wrong_word)
+
 def write_wrong_word():
-    global wrong_word
+    if SETT.TEST_FAIL :
+        return
+    global wrong_word_list
     another_day = True
     # 讀取檔案的日期
     fr = None
@@ -33,14 +42,14 @@ def write_wrong_word():
         pass
     else :
         read_in = fr.read()
-        old_wrong_word = json.loads(read_in)
-        wrong_word = old_wrong_word + wrong_word
+        old_wrong_word_list = json.loads(read_in)
+        wrong_word_list = old_wrong_word_list + wrong_word_list
     if fr :
         fr.close()
     
     fw = open(SETT.WRONG_WORD_PATH, "w", encoding='UTF-8')
     fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
-    json.dump(wrong_word, fw, indent = 4, ensure_ascii=False)
+    json.dump(wrong_word_list, fw, indent = 4, ensure_ascii=False)
     fw.close()
         
 class Words :
@@ -50,6 +59,9 @@ class Words :
         self.weight = Settings.weight
         self.now_time = datetime.now()
         fr = open(self.word_file_path, "r", encoding='UTF-8')
+        # 排除錯誤檔案 第一行紀錄的日期
+        if SETT.TEST_FAIL :
+            fr.readline()
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         fr.close()
         self.new_word_list = []
@@ -130,11 +142,14 @@ class Words :
         print("status 平均 :", status_count / len(all_words))
         # 寫入
         with open(self.word_file_path, "w", encoding='UTF-8') as fw:
+            if SETT.TEST_FAIL :
+                fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
-        date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
-        with open(self.word_file_path.replace(r"\word",r"\word\backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
-            json.dump(all_words, fw, indent = 4, ensure_ascii=False)
+        if not SETT.TEST_FAIL :
+            date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
+            with open(self.word_file_path.replace(r"\word",r"\word\backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
+                json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
 if __name__ == "__main__" :
     all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
@@ -174,7 +189,7 @@ if __name__ == "__main__" :
             rand_word = rand_json.random_within_date()
             if rand_word == None :
                 # 查看有沒有新的單字
-                new_word_path = rand_json.word_file_path.replace(".json","_new.json")
+                new_word_path = rand_json.word_file_path.replace(".","_new.")
                 # print("new_word_path :",new_word_path)
                 if os.path.isfile(new_word_path) :
                     with open(new_word_path, "r", encoding='UTF-8') as new_fr:
@@ -200,7 +215,7 @@ if __name__ == "__main__" :
 
     def play_word_and_other():
         eng_and_other = rand_word["eng"]
-        eng_and_other += ", ".join(each_other.split(" ")[0] for each_other in rand_word["other"])
+        eng_and_other =  " ' ' ".join([eng_and_other] + [each_other.split(" ")[0] for each_other in rand_word["other"]])
         word_to_sound(eng_and_other)
     
     # 按鈕初始化
@@ -257,9 +272,15 @@ if __name__ == "__main__" :
     # 按鈕 function
     def test_pass(word):
         # word["status"] = min(max(word["status"]+1,long_term_mem_threshold+2), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
-        word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
-        word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
-        rand_json.add_word_first(rand_word)
+        if SETT.TEST_FAIL :
+            word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
+            if word["status"] > SETT.WRONG_WORD_PASS :
+                word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+            rand_json.insert_back(word)
+        else :
+            word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
+            word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
+            rand_json.add_word_first(word)
         switch_button()
 
     def test_again(word):
@@ -268,25 +289,29 @@ if __name__ == "__main__" :
             next_day = 3
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
-        rand_json.add_word_first(rand_word)
+        rand_json.add_word_first(word)
         switch_button()
 
     def test_fail(word):
-        wrong_word.append(word)
-        next_day = 1
-        if word["status"] > SETT.long_term_mem_threshold :
-            # 如果已經進入長期記憶 又錯誤的話要確認有沒有進入長期記憶
-            # 因此要延後幾天再確認一次
-            next_day = 7
-        word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
-        word["status"] = max(word["status"]-2, 0)
-        rand_json.add_word_first(rand_word)
+        if SETT.TEST_FAIL :
+            word["status"] = max(word["status"]-2, 0)
+            rand_json.insert_back(word)
+        else :
+            next_day = 1
+            if word["status"] > SETT.long_term_mem_threshold :
+                # 如果已經進入長期記憶 又錯誤的話要確認有沒有進入長期記憶
+                # 因此要延後幾天再確認一次
+                next_day = 7
+            word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
+            word["status"] = max(word["status"]-2, 0)
+            add_wrong_word(word)
+            rand_json.add_word_first(word)
         switch_button()
 
     def test_hard(word):
         word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
-        rand_json.add_word_last(rand_word)
+        rand_json.add_word_last(word)
         switch_button()
 
     def show_ans():

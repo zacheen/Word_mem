@@ -31,3 +31,8 @@ def play_byte_mp3(byte_mp3):
     time.sleep(0.3)
     sound.play()
     pygame_time.wait(int(sound.get_length() * 1000))
+
+if __name__ == "__main__" :
+    word_to_sound("word ' ' word")
+    # word_to_sound("word word")
+    # word_to_sound("word ' ' ' ' word")
