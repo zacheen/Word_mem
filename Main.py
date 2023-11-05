@@ -41,8 +41,7 @@ def write_wrong_word():
     if another_day or fr == None :
         pass
     else :
-        read_in = fr.read()
-        old_wrong_word_list = json.loads(read_in)
+        old_wrong_word_list = json.loads(fr.read())
         wrong_word_list = old_wrong_word_list + wrong_word_list
     if fr :
         fr.close()
@@ -150,6 +149,17 @@ class Words :
             date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
             with open(self.word_file_path.replace(r"\word",r"\word\backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
                 json.dump(all_words, fw, indent = 4, ensure_ascii=False)
+
+def add_new_word(word_file_path, word):
+    word_file_path = word_file_path.replace(".","_new.")
+    print(word_file_path)
+    file_word_list = []
+    if os.path.isfile(word_file_path) :
+        with open(word_file_path, "r") as fr :
+            file_word_list = json.loads(fr.read())
+    file_word_list.append(word)
+    with open(word_file_path, "w") as fw :
+        json.dump(file_word_list, fw, indent = 4, ensure_ascii=False)
 
 if __name__ == "__main__" :
     all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
@@ -311,7 +321,8 @@ if __name__ == "__main__" :
     def test_hard(word):
         word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
-        rand_json.add_word_last(word)
+        # rand_json.add_word_last(word)
+        add_new_word(rand_json.word_file_path, word)
         switch_button()
 
     def show_ans():
