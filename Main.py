@@ -60,7 +60,7 @@ class Words :
         fr = open(self.word_file_path, "r", encoding='UTF-8')
         # 排除錯誤檔案 第一行紀錄的日期
         if SETT.TEST_FAIL :
-            fr.readline()
+            self.read_date = fr.readline()
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         fr.close()
         self.new_word_list = []
@@ -142,7 +142,7 @@ class Words :
         # 寫入
         with open(self.word_file_path, "w", encoding='UTF-8') as fw:
             if SETT.TEST_FAIL :
-                fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
+                fw.write(self.read_date)
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
         if not SETT.TEST_FAIL :
