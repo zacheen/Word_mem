@@ -6,7 +6,7 @@ class Json_file:
         self.NEAR_FIRST = NEAR_FIRST
         self.weight = weight
 
-DAYS = [0,1,1,1,2,3,5,7,14,21,31,31,45,90,180] # 365 感覺沒有必要了
+DAYS = [0,1,1,1,2,3,5,7,15,23,31,31,45,90,180] # 365 感覺沒有必要了
 long_term_mem_threshold = DAYS.index(7)
 print("long_term indx :", long_term_mem_threshold)
 DATE_FORMAT = r"%Y/%m/%d"
@@ -23,5 +23,5 @@ else :
     all_json_files = [
         Json_file(r"D:\dont_move\word\toeic.json", 150, 2),
         Json_file(r"D:\dont_move\word\toelf.json", 150, 2),
-        Json_file(r"D:\dont_move\word\gre.json", 150, 1),
+        Json_file(r"D:\dont_move\word\gre.json", 150, 2),
         ]

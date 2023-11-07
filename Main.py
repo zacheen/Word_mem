@@ -98,14 +98,13 @@ class Words :
             rand_range = min(rand_range, self.NEAR_FIRST+self.start_indx)
         if self.start_indx == rand_range :
             return None
-        # print("rand",self.start_indx, rand_range)
-        rand_indx = randrange(self.start_indx, rand_range)
-        now_indx = rand_indx
+        now_indx = randrange(self.start_indx, rand_range)
         while len(self.old_word_list) > self.start_indx :
             word_last_date = self.old_word_list[now_indx]["date"]
             word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
             if word_last_date < self.now_time :
                 self.last_rand_indx = now_indx
+                # print("rand",self.start_indx, rand_range, now_indx)
                 return self.old_word_list.pop(now_indx)
             else :
                 self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
