@@ -288,14 +288,17 @@ if __name__ == "__main__" :
             rand_json.insert_back(word)
         else :
             word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
-            word["date"] = (datetime.now() + timedelta(days=SETT.DAYS[word["status"]])).strftime(SETT.DATE_FORMAT)
+            shift_days = SETT.DAYS[word["status"]]
+            if word["status"] > (SETT.long_term_mem_threshold+2) :
+                shift_days += randrange(0,4)
+            word["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             rand_json.add_word_first(word)
         switch_button()
 
     def test_again(word):
         next_day = 1
         if word["status"] > SETT.long_term_mem_threshold :
-            next_day = 3
+            next_day = 7
         word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
         rand_json.add_word_first(word)
