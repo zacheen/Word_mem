@@ -22,6 +22,7 @@ def add_wrong_word(word):
     global wrong_word_list
     new_wrong_word = copy.deepcopy(word)
     new_wrong_word["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
+    new_wrong_word["status"] = min(new_wrong_word["status"], 5)
     wrong_word_list.append(new_wrong_word)
 
 def write_wrong_word():
@@ -296,11 +297,9 @@ if __name__ == "__main__" :
         switch_button()
 
     def test_again(word):
-        next_day = 1
-        if word["status"] > SETT.long_term_mem_threshold :
-            next_day = 7
-        word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
         word["status"] = max(word["status"]-1, 0)
+        shift_days = SETT.DAYS[word["status"]]
+        word["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
         rand_json.add_word_first(word)
         switch_button()
 
@@ -309,13 +308,9 @@ if __name__ == "__main__" :
             word["status"] = max(word["status"]-2, 0)
             rand_json.insert_back(word)
         else :
-            next_day = 1
-            if word["status"] > SETT.long_term_mem_threshold :
-                # 如果已經進入長期記憶 又錯誤的話要確認有沒有進入長期記憶
-                # 因此要延後幾天再確認一次
-                next_day = 7
-            word["date"] = (datetime.now() + timedelta(days=next_day)).strftime(SETT.DATE_FORMAT)
             word["status"] = max(word["status"]-2, 0)
+            shift_days = SETT.DAYS[word["status"]]
+            word["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             add_wrong_word(word)
             rand_json.add_word_first(word)
         switch_button()
