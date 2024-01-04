@@ -74,7 +74,7 @@ class Words :
                 self.start_indx = indx
                 break
         print(f"--  {self.word_file_path}  --------------------------------")
-        print("今日已讀單字", self.start_indx) # 有點不准，不過差不多啦
+        print("今日已讀單字 :", self.start_indx) # 有點不准，不過差不多啦
 
         # 處理每個字
         status_count = 0
@@ -135,6 +135,7 @@ class Words :
             if all_words[indx]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
             status_count += all_words[indx]["status"]
+        print("今日已讀單字 :", self.start_indx)
         # print("學會單字數量 :", know_count)
         # print("錯誤單字數量 :", len(all_words) - know_count)
         # print("status 總和 :", status_count)
@@ -178,13 +179,13 @@ if __name__ == "__main__" :
     window = tk.Tk()
     window.title('word_mem')
     # window.state("zoomed") # 有BUG 會直接點到後面
-    window.geometry("900x500+350+100")
+    window.geometry("1350x650+100+50")
     word_show_weight = 0.5
 
     show_txt = tk.Button(window,                 # 文字標示所在視窗
         text = '英文單字',  # 顯示文字
         bg = '#EEBB00',         #  背景顏色
-        font = ('Arial', 15),   # 字型與大小
+        font = ('Arial', 20),   # 字型與大小
         width = 15, height = 2,  # 文字標示尺寸  
         command = lambda : word_to_sound(rand_word["eng"]),
     )
@@ -229,7 +230,7 @@ if __name__ == "__main__" :
         word_to_sound(eng_and_other)
     
     # 按鈕初始化
-    button_show_ans = tk.Button(window,text = '顯示翻譯(space)',font = ('黑體', 15))
+    button_show_ans = tk.Button(window,text = '顯示翻譯(up)',font = ('黑體', 15))
     button_test_pass = tk.Button(window,text = '知道(left)',font = ('黑體', 15))
     button_test_again = tk.Button(window,text = '沒有及時反應',font = ('黑體', 15))
     button_test_hard = tk.Button(window,text = '難且不常出現',font = ('黑體', 15))
