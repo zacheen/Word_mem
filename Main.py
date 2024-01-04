@@ -79,9 +79,15 @@ class Words :
         # 處理每個字
         status_count = 0
         know_count = 0
+        all_word_map = set()
         for indx in range(len(self.old_word_list)):
-            # if self.old_word_list[indx]["association"] == "no":
-            #     self.old_word_list[indx]["association"] = ""
+            # 確認沒有重複的
+            if self.old_word_list[indx]["eng"] in all_word_map :
+                print("same!! : ", self.old_word_list[indx]["eng"])
+            else :
+                all_word_map.add(self.old_word_list[indx]["eng"])
+
+            # 計算狀態
             if self.old_word_list[indx]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
             status_count += self.old_word_list[indx]["status"]
