@@ -13,6 +13,7 @@ DATE_FORMAT = r"%Y/%m/%d"
 PLAY_SOUND = True
 # PLAY_SOUND = False
 WRONG_WORD_PATH = r"G:\我的雲端硬碟\__wrong_word.txt"
+AGAIN_WORD_PATH = r"G:\我的雲端硬碟\__again_word.txt"
 WRONG_WORD_PASS = 6
 
 if TEST_FAIL :
@@ -24,4 +25,5 @@ else :
         Json_file(r"D:\dont_move\word\toeic.json", 150, 2),
         Json_file(r"D:\dont_move\word\toelf.json", 150, 2),
         Json_file(r"D:\dont_move\word\gre.json", 150, 2),
+        Json_file(r"D:\dont_move\word\gre_new.json", 150, 0),
         ]

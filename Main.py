@@ -18,22 +18,21 @@ def til_the_end():
 
 # 寫入今日錯誤紀錄 (紀錄的日期是隔天)
 wrong_word_list = []
-def add_wrong_word(word):
-    global wrong_word_list
+again_word_list = []
+def add_wrong_word(word, word_list):
     new_wrong_word = copy.deepcopy(word)
-    new_wrong_word["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
-    new_wrong_word["status"] = min(new_wrong_word["status"], 5)
-    wrong_word_list.append(new_wrong_word)
+    new_wrong_word["each_T"][rand_word_indx]["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
+    new_wrong_word["each_T"][rand_word_indx]["status"] = min(new_wrong_word["each_T"][rand_word_indx]["status"], 5)
+    word_list.append(new_wrong_word)
 
-def write_wrong_word():
+def write_wrong_word(wrong_word_list, file_path):
     if SETT.TEST_FAIL :
         return
-    global wrong_word_list
     another_day = True
     # 讀取檔案的日期
     fr = None
-    if os.path.isfile(SETT.WRONG_WORD_PATH) :
-        fr = open(SETT.WRONG_WORD_PATH, "r")
+    if os.path.isfile(file_path) :
+        fr = open(file_path, "r")
         wrong_date = fr.readline()
         wrong_date = datetime.strptime(wrong_date[:-1], SETT.DATE_FORMAT)
         if wrong_date > datetime.now() :
@@ -47,7 +46,7 @@ def write_wrong_word():
     if fr :
         fr.close()
     
-    fw = open(SETT.WRONG_WORD_PATH, "w", encoding='UTF-8')
+    fw = open(file_path, "w", encoding='UTF-8')
     fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
     json.dump(wrong_word_list, fw, indent = 4, ensure_ascii=False)
     fw.close()
@@ -67,30 +66,63 @@ class Words :
         self.new_word_list = []
         # 找 random 起使位置
         self.start_indx = len(self.old_word_list)
+        break_flag = False
         for indx in range(len(self.old_word_list)):
-            word_last_date = self.old_word_list[indx]["date"]
-            word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
-            if word_last_date < self.now_time :
-                self.start_indx = indx
+            for each_word in self.old_word_list[indx]['each_T'] :
+                word_last_date = each_word["date"]
+                word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
+                if word_last_date < self.now_time :
+                    self.start_indx = indx
+                    break_flag = True
+                    break
+            if break_flag :
                 break
         print(f"--  {self.word_file_path}  --------------------------------")
         print("今日已讀單字 :", self.start_indx) # 有點不准，不過差不多啦
 
-        # 處理每個字
         status_count = 0
         know_count = 0
         all_word_map = set()
         for indx in range(len(self.old_word_list)):
             # 確認沒有重複的
-            if self.old_word_list[indx]["eng"] in all_word_map :
-                print("same!! : ", self.old_word_list[indx]["eng"])
-            else :
-                all_word_map.add(self.old_word_list[indx]["eng"])
+            for each_word in self.old_word_list[indx]["each_T"] :
+                if each_word["eng"] in all_word_map :
+                    print("same!! : ", each_word["eng"])
+                else :
+                    all_word_map.add(each_word["eng"])
 
-            # 計算狀態
-            if self.old_word_list[indx]["status"] >= SETT.long_term_mem_threshold :
+            # # 處理每個字
+            # self.old_word_list[indx]["each_T"] = []
+            # self.old_word_list[indx]["each_T"].append({})
+            # i = 0
+            # self.old_word_list[indx]["each_T"][i]["eng"] = self.old_word_list[indx]["eng"]
+            # del(self.old_word_list[indx]["eng"])
+            # self.old_word_list[indx]["each_T"][i]["chi"] = self.old_word_list[indx]["chi"]
+            # del(self.old_word_list[indx]["chi"])
+            # self.old_word_list[indx]["each_T"][i]["status"] = self.old_word_list[indx]["status"]
+            # del(self.old_word_list[indx]["status"])
+            # self.old_word_list[indx]["each_T"][i]["date"] = self.old_word_list[indx]["date"]
+            # del(self.old_word_list[indx]["date"])
+
+            # for each_other in self.old_word_list[indx]["other"] :
+            #     i += 1
+            #     self.old_word_list[indx]["each_T"].append({})
+            #     each_other_split = each_other.split(" ")
+            #     if len(each_other_split) > 2 :
+            #         print(each_other_split)
+            #     if each_other_split[0].isalpha() :
+            #         self.old_word_list[indx]["each_T"][i]["eng"] = each_other_split[0]
+            #         self.old_word_list[indx]["each_T"][i]["chi"] = " ".join(each_other_split[1:])
+            #     else :
+            #         self.old_word_list[indx]["each_T"][i]["eng"] = each_other_split[-1]
+            #         self.old_word_list[indx]["each_T"][i]["chi"] = " ".join(each_other_split[:-1])
+            #     self.old_word_list[indx]["each_T"][i]["status"] = 0
+            #     self.old_word_list[indx]["each_T"][i]["date"] = "2099/12/31"
+
+            # 計算狀態 (同字根的單字只計算第一個)
+            if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
-            status_count += self.old_word_list[indx]["status"]
+            status_count += self.old_word_list[indx]['each_T'][0]["status"]
         print("總共讀取單字數量 :", len(self.old_word_list))
         # print("學會單字數量 :", know_count)
         # print("錯誤單字數量 :", len(self.old_word_list) - know_count)
@@ -104,22 +136,22 @@ class Words :
         if self.NEAR_FIRST > 0 :
             rand_range = min(rand_range, self.NEAR_FIRST+self.start_indx)
         if self.start_indx == rand_range :
-            return None
+            return None, -1
         now_indx = randrange(self.start_indx, rand_range)
         while len(self.old_word_list) > self.start_indx :
-            word_last_date = self.old_word_list[now_indx]["date"]
-            word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
-            if word_last_date < self.now_time :
-                self.last_rand_indx = now_indx
-                # print("rand",self.start_indx, rand_range, now_indx)
-                return self.old_word_list.pop(now_indx)
-            else :
-                self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
-                self.start_indx += 1
-                now_indx += 1
+            for indx, this_word in enumerate(self.old_word_list[now_indx]["each_T"]) :
+                word_last_date = this_word["date"]
+                word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
+                if word_last_date < self.now_time :
+                    self.last_rand_indx = now_indx
+                    # print("rand",self.start_indx, rand_range, now_indx)
+                    return self.old_word_list.pop(now_indx), indx
+            self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
+            self.start_indx += 1
+            now_indx += 1
             if now_indx == len(self.old_word_list) :
                 now_indx = self.start_indx
-        return None
+        return None, -1
     
     def add_word_first(self, item):
         self.new_word_list.insert(0,item)
@@ -138,9 +170,9 @@ class Words :
         know_count = 0
         print("總共寫入單字數量 :", len(all_words))
         for indx in range(len(all_words)):
-            if all_words[indx]["status"] >= SETT.long_term_mem_threshold :
+            if all_words[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
-            status_count += all_words[indx]["status"]
+            status_count += all_words[indx]['each_T'][0]["status"]
         print("今日已讀單字 :", self.start_indx)
         # print("學會單字數量 :", know_count)
         # print("錯誤單字數量 :", len(all_words) - know_count)
@@ -178,7 +210,8 @@ if __name__ == "__main__" :
         global rand_word
         rand_json.insert_back(rand_word)
         for each_json in all_json : each_json.save()
-        write_wrong_word()
+        write_wrong_word(wrong_word_list, SETT.WRONG_WORD_PATH)
+        write_wrong_word(again_word_list, SETT.AGAIN_WORD_PATH)
     atexit.register(when_exit)
 
     # UI 介面
@@ -193,17 +226,19 @@ if __name__ == "__main__" :
         bg = '#EEBB00',         #  背景顏色
         font = ('Arial', 20),   # 字型與大小
         width = 15, height = 2,  # 文字標示尺寸  
-        command = lambda : word_to_sound(rand_word["eng"]),
+        command = lambda : word_to_sound(rand_word["each_T"][rand_word_indx]["eng"]),
     )
     show_txt.place(relx=0,rely=0,relheight=word_show_weight,relwidth=1)
 
     def random_a_word():
         global rand_word
+        global rand_word_indx
         global rand_json
         global rand_weights
         while all_json :
             rand_json = choices(all_json, weights=rand_weights, k = 1)[0]
-            rand_word = rand_json.random_within_date()
+            print("random json :", rand_json.word_file_path)
+            rand_word, rand_word_indx = rand_json.random_within_date()
             if rand_word == None :
                 # 查看有沒有新的單字
                 new_word_path = rand_json.word_file_path.replace(".","_new.")
@@ -226,13 +261,15 @@ if __name__ == "__main__" :
                 break
         if rand_word == None :
             til_the_end()
-        show_str = rand_word["eng"]
+        show_str = rand_word["each_T"][rand_word_indx]["eng"]
         # word_to_sound(show_str) # 出現新單字要不要順便聽發音
         show_txt.config(text = show_str )
 
     def play_word_and_other():
-        eng_and_other = rand_word["eng"]
-        eng_and_other =  " ' ' ".join([eng_and_other] + [each_other.split(" ")[0] for each_other in rand_word["other"]])
+        eng_and_other = rand_word["each_T"][rand_word_indx]["eng"]
+        for indx, each_word in enumerate(rand_word["each_T"]) :
+            if indx != rand_word_indx :
+                eng_and_other += each_word["eng"]
         word_to_sound(eng_and_other)
     
     # 按鈕初始化
@@ -257,13 +294,14 @@ if __name__ == "__main__" :
             button_status = 0
         else :
             # change to know
-            show_str = f'{show_txt.cget("text")} {rand_word["chi"]} ({rand_word["status"]})'
+            show_str = f'{show_txt.cget("text")} {rand_word["each_T"][rand_word_indx]["chi"]} ({rand_word["each_T"][rand_word_indx]["status"]})'
             if rand_word["association"] :
                 show_str += "\n" +rand_word["association"]
-            if "other" in rand_word and len(rand_word["other"])>0 :
+            if len(rand_word["each_T"]) > 1 :
                 show_str += "\n" + "other type : "
-                for other_type in rand_word["other"] :
-                    show_str += "\n" + other_type
+                for indx, each_word in enumerate(rand_word["each_T"]) :
+                    if indx != rand_word_indx :
+                        show_str += "\n" + each_word["eng"] + " " + each_word["chi"]
             if "similar" in rand_word and len(rand_word["similar"])>0 :
                 show_str += "\n" + "similar : "
                 for other_type in rand_word["similar"] :
@@ -288,43 +326,44 @@ if __name__ == "__main__" :
     
     # 按鈕 function
     def test_pass(word):
-        # word["status"] = min(max(word["status"]+1,long_term_mem_threshold+2), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
+        # word["each_T"][rand_word_indx]["status"] = min(max(word["each_T"][rand_word_indx]["status"]+1,long_term_mem_threshold+2), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
         if SETT.TEST_FAIL :
-            word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
-            if word["status"] > SETT.WRONG_WORD_PASS :
-                word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+            word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, len(SETT.DAYS)-1)
+            if word["each_T"][rand_word_indx]["status"] > SETT.WRONG_WORD_PASS :
+                word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
             rand_json.insert_back(word)
         else :
-            word["status"] = min(word["status"]+1, len(SETT.DAYS)-1)
-            shift_days = SETT.DAYS[word["status"]]
-            if word["status"] > (SETT.long_term_mem_threshold+2) :
+            word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, len(SETT.DAYS)-1)
+            shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
+            if word["each_T"][rand_word_indx]["status"] > (SETT.long_term_mem_threshold+2) :
                 shift_days += randrange(0,4)
-            word["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+            word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             rand_json.add_word_first(word)
         switch_button()
 
     def test_again(word):
-        word["status"] = max(word["status"]-1, 0)
-        shift_days = SETT.DAYS[word["status"]]
-        word["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+        word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-1, 0)
+        shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
+        word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+        add_wrong_word(word, again_word_list)
         rand_json.add_word_first(word)
         switch_button()
 
     def test_fail(word):
         if SETT.TEST_FAIL :
-            word["status"] = max(word["status"]-2, 0)
+            word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-2, 0)
             rand_json.insert_back(word)
         else :
-            word["status"] = max(word["status"]-2, 0)
-            shift_days = SETT.DAYS[word["status"]]
-            word["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
-            add_wrong_word(word)
+            word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-2, 0)
+            shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
+            word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+            add_wrong_word(word, wrong_word_list)
             rand_json.add_word_first(word)
         switch_button()
 
     def test_hard(word):
-        word["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
-        word["status"] = max(word["status"]-1, 0)
+        word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+        word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-1, 0)
         # rand_json.add_word_last(word)
         add_new_word(rand_json.word_file_path, word)
         switch_button()
@@ -355,7 +394,7 @@ if __name__ == "__main__" :
             if key == keyboard.Key.up:
                 show_ans()
             elif key == keyboard.Key.left or key == keyboard.Key.right :
-                word_to_sound(rand_word["eng"])
+                word_to_sound(rand_word["each_T"][rand_word_indx]["eng"])
     # Collect events until released
     listener = keyboard.Listener(on_release=on_release)
     listener.start()
