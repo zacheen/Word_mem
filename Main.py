@@ -321,8 +321,15 @@ if __name__ == "__main__" :
                         show_str += "\n" + each_word["eng"] + " " + each_word["chi"]
             if "similar" in rand_word and len(rand_word["similar"])>0 :
                 show_str += "\n" + "similar : "
-                for other_type in rand_word["similar"] :
-                    show_str += "\n" + other_type
+                for each_sim in rand_word["similar"] :
+                    if " @" in each_sim :
+                        each_sim = each_sim.replace(" @","")
+                        for each_type in all_word_map[each_sim]["each_T"] :
+                            if each_type['eng'] == each_sim :
+                                show_str += "\n" + each_sim + " " + each_type['chi']
+                                break
+                    else :
+                        show_str += "\n" + each_sim
             show_txt.config(text=show_str)
             place_weight = [2,1,1,2]
             weight_sum = sum(place_weight)
