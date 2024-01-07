@@ -51,6 +51,18 @@ def write_wrong_word(wrong_word_list, file_path):
     json.dump(wrong_word_list, fw, indent = 4, ensure_ascii=False)
     fw.close()
         
+all_word_map = set()
+def deal_all_word():
+    for each_json in all_json :
+        # link similar
+        for indx in range(len(each_json.old_word_list)):
+            for indx_sim, each_word in enumerate(each_json.old_word_list[indx]["similar"]) :
+                for each_poss in each_word.split(" ") :
+                    if each_poss.isalpha() and each_poss.islower() :
+                        # print("是單字", each_poss)
+                        if each_poss in all_word_map :
+                            # print("link!! : ", each_poss)
+                            each_json.old_word_list[indx]["similar"][indx_sim] = each_poss + " @"
 class Words :
     def __init__(self, Settings):
         self.word_file_path = Settings.word_file_path
@@ -82,7 +94,6 @@ class Words :
 
         status_count = 0
         know_count = 0
-        all_word_map = set()
         for indx in range(len(self.old_word_list)):
             # 確認沒有重複的
             for each_word in self.old_word_list[indx]["each_T"] :
@@ -202,6 +213,7 @@ def add_new_word(word_file_path, word):
 
 if __name__ == "__main__" :
     all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
+    deal_all_word()
     rand_weights = tuple(each_json.weight for each_json in all_json)
     print("rand_weights :",rand_weights)
     
