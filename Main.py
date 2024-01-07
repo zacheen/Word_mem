@@ -25,6 +25,13 @@ def add_wrong_word(word, word_list):
     new_wrong_word["each_T"][rand_word_indx]["status"] = min(new_wrong_word["each_T"][rand_word_indx]["status"], 5)
     word_list.append(new_wrong_word)
 
+    # 從所有的單字中找出 similar 連結的單字
+    for each_sim in new_wrong_word["similar"] :
+        if " @" in each_sim :
+            each_sim = each_sim.replace(" @","")
+            if each_sim in all_word_map :
+                word_list.append(all_word_map[each_sim])
+
 def write_wrong_word(wrong_word_list, file_path):
     if SETT.TEST_FAIL :
         return
@@ -51,7 +58,7 @@ def write_wrong_word(wrong_word_list, file_path):
     json.dump(wrong_word_list, fw, indent = 4, ensure_ascii=False)
     fw.close()
         
-all_word_map = set()
+all_word_map = {}
 def deal_all_word():
     for each_json in all_json :
         # link similar
@@ -59,9 +66,7 @@ def deal_all_word():
             for indx_sim, each_word in enumerate(each_json.old_word_list[indx]["similar"]) :
                 for each_poss in each_word.split(" ") :
                     if each_poss.isalpha() and each_poss.islower() :
-                        # print("是單字", each_poss)
                         if each_poss in all_word_map :
-                            # print("link!! : ", each_poss)
                             each_json.old_word_list[indx]["similar"][indx_sim] = each_poss + " @"
 class Words :
     def __init__(self, Settings):
@@ -100,7 +105,7 @@ class Words :
                 if each_word["eng"] in all_word_map :
                     print("same!! : ", each_word["eng"])
                 else :
-                    all_word_map.add(each_word["eng"])
+                    all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
             # # 處理每個字
             # self.old_word_list[indx]["each_T"] = []
