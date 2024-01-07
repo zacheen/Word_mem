@@ -254,7 +254,7 @@ if __name__ == "__main__" :
         global rand_weights
         while all_json :
             rand_json = choices(all_json, weights=rand_weights, k = 1)[0]
-            print("random json :", rand_json.word_file_path)
+            # print("random json :", rand_json.word_file_path)
             rand_word, rand_word_indx = rand_json.random_within_date()
             if rand_word == None :
                 # 查看有沒有新的單字
@@ -362,6 +362,24 @@ if __name__ == "__main__" :
             if word["each_T"][rand_word_indx]["status"] > (SETT.long_term_mem_threshold+2) :
                 shift_days += randrange(0,4)
             word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+            
+            # 如果前一個單字已經 滿state
+            if word["each_T"][rand_word_indx]["status"] == len(SETT.DAYS)-1 :
+                next_indx = rand_word_indx + 1
+                if next_indx == len(word["each_T"]) :
+                    next_indx = 0
+                # 1. 可以開始背下一個單字
+                print("full next word : ", word["each_T"][next_indx]["eng"] )
+                if word["each_T"][next_indx]["status"] <= 0 :
+                    word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+                # 2. 如果有其他 滿state 的單字, 全部一起更新日期 並把下一個單字設定比較前面
+                for i in range(word["each_T"]) :
+                    if word["each_T"][i]["status"] == len(SETT.DAYS)-1 :
+                        if i == next_indx :
+                            word["each_T"][i]["date"] = (datetime.now() + timedelta(days=shift_days-1)).strftime(SETT.DATE_FORMAT)
+                        else :
+                            word["each_T"][i]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+
             rand_json.add_word_first(word)
         switch_button()
 
