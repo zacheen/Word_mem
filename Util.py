@@ -4,6 +4,7 @@ import Settings as SETT
 import requests
 no_network = False
 def word_to_sound(word, language = "en"):
+    # print("play :", word)
     if SETT.PLAY_SOUND != True :
         return
     class My_thread (threading.Thread):   #繼承父類threading.Thread

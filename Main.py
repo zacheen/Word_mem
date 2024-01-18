@@ -108,6 +108,10 @@ class Words :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
             # # 處理每個字
+            for each_word in self.old_word_list[indx]["each_T"] :
+                if 'ex' not in each_word:
+                    each_word['ex'] = []
+
             # self.old_word_list[indx]["each_T"] = []
             # self.old_word_list[indx]["each_T"].append({})
             # i = 0
@@ -286,7 +290,7 @@ if __name__ == "__main__" :
         eng_and_other = rand_word["each_T"][rand_word_indx]["eng"]
         for indx, each_word in enumerate(rand_word["each_T"]) :
             if indx != rand_word_indx :
-                eng_and_other += each_word["eng"]
+                eng_and_other += " , " + each_word["eng"]
         word_to_sound(eng_and_other)
     
     # 按鈕初始化
