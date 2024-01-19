@@ -368,21 +368,22 @@ if __name__ == "__main__" :
             word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             
             # 如果前一個單字已經 滿state
-            if word["each_T"][rand_word_indx]["status"] == len(SETT.DAYS)-1 :
+            if word["each_T"][rand_word_indx]["status"] >= SETT.D45_indx :
                 next_indx = rand_word_indx + 1
                 if next_indx == len(word["each_T"]) :
                     next_indx = 0
                 # 1. 可以開始背下一個單字
                 print("full next word : ", word["each_T"][next_indx]["eng"] )
-                if word["each_T"][next_indx]["status"] <= 0 :
-                    word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+                if "2099" in word["each_T"][next_indx]["date"] :
+                    word["each_T"][next_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
                 # 2. 如果有其他 滿state 的單字, 全部一起更新日期 並把下一個單字設定比較前面
-                for i in range(word["each_T"]) :
-                    if word["each_T"][i]["status"] == len(SETT.DAYS)-1 :
+                rand_days = randrange(0,4)
+                for i in range(len(word["each_T"])) :
+                    if word["each_T"][i]["status"] >= len(SETT.DAYS)-1 : # 滿等才需要因為其他正確跟著改日期
+                        shift_days = SETT.DAYS[word["each_T"][i]["status"]] + rand_days
                         if i == next_indx :
-                            word["each_T"][i]["date"] = (datetime.now() + timedelta(days=shift_days-1)).strftime(SETT.DATE_FORMAT)
-                        else :
-                            word["each_T"][i]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+                            shift_days -= 1
+                        word["each_T"][i]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
 
             rand_json.add_word_first(word)
         switch_button()
