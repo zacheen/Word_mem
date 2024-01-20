@@ -111,6 +111,8 @@ class Words :
             for each_word in self.old_word_list[indx]["each_T"] :
                 if 'ex' not in each_word:
                     each_word['ex'] = []
+                if 'sound' not in each_word:
+                    each_word['sound'] = ""
 
             # self.old_word_list[indx]["each_T"] = []
             # self.old_word_list[indx]["each_T"].append({})
@@ -247,7 +249,7 @@ if __name__ == "__main__" :
         bg = '#EEBB00',         #  背景顏色
         font = ('Arial', 20),   # 字型與大小
         width = 15, height = 2,  # 文字標示尺寸  
-        command = lambda : word_to_sound(rand_word["each_T"][rand_word_indx]["eng"]),
+        command = lambda : play_word_eng(False),
     )
     show_txt.place(relx=0,rely=0,relheight=word_show_weight,relwidth=1)
 
@@ -283,14 +285,17 @@ if __name__ == "__main__" :
         if rand_word == None :
             til_the_end()
         show_str = rand_word["each_T"][rand_word_indx]["eng"]
-        # word_to_sound(show_str) # 出現新單字要不要順便聽發音
+        # play_word_eng(False) # 出現新單字要不要順便聽發音
         show_txt.config(text = show_str )
 
-    def play_word_and_other():
-        eng_and_other = rand_word["each_T"][rand_word_indx]["eng"]
-        for indx, each_word in enumerate(rand_word["each_T"]) :
-            if indx != rand_word_indx :
-                eng_and_other += " , " + each_word["eng"]
+    def play_word_eng(other = False):
+        eng_and_other = (rand_word["each_T"][rand_word_indx]["sound"] 
+            if rand_word["each_T"][rand_word_indx]["sound"]!="" 
+            else rand_word["each_T"][rand_word_indx]["eng"])
+        if other :
+            for indx, each_word in enumerate(rand_word["each_T"]) :
+                if indx != rand_word_indx :
+                    eng_and_other += " , " + each_word["sound"] if each_word["sound"] != "" else each_word["eng"]
         word_to_sound(eng_and_other)
     
     # 按鈕初始化
@@ -416,7 +421,7 @@ if __name__ == "__main__" :
         switch_button()
 
     def show_ans():
-        play_word_and_other()
+        play_word_eng(True)
         switch_button()
 
     button_show_ans.config(command = show_ans)
@@ -434,14 +439,14 @@ if __name__ == "__main__" :
             elif key == keyboard.Key.right:
                 test_fail(rand_word)
             elif key == keyboard.Key.up:
-                play_word_and_other()
+                play_word_eng(True)
             elif key == keyboard.Key.down:
                 test_again(rand_word)
         else :
             if key == keyboard.Key.up:
                 show_ans()
             elif key == keyboard.Key.left or key == keyboard.Key.right :
-                word_to_sound(rand_word["each_T"][rand_word_indx]["eng"])
+                play_word_eng(False)
     # Collect events until released
     listener = keyboard.Listener(on_release=on_release)
     listener.start()
