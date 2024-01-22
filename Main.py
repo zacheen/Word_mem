@@ -378,8 +378,8 @@ if __name__ == "__main__" :
                 if next_indx == len(word["each_T"]) :
                     next_indx = 0
                 # 1. 可以開始背下一個單字
-                print("full next word : ", word["each_T"][next_indx]["eng"] )
                 if "2099" in word["each_T"][next_indx]["date"] :
+                    print("full next word :", word["each_T"][next_indx]["eng"] )
                     word["each_T"][next_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
                 # 2. 如果有其他 滿state 的單字, 全部一起更新日期 並把下一個單字設定比較前面
                 rand_days = randrange(0,4)

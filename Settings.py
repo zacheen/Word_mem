@@ -20,6 +20,7 @@ WRONG_WORD_PASS = 6
 if TEST_FAIL :
     all_json_files = [
         Json_file(WRONG_WORD_PATH, 200, 1),
+        Json_file(AGAIN_WORD_PATH, 200, 1),
         ]
 else :
     all_json_files = [
