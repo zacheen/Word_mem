@@ -113,33 +113,8 @@ class Words :
                     each_word['ex'] = []
                 if 'sound' not in each_word:
                     each_word['sound'] = ""
-
-            # self.old_word_list[indx]["each_T"] = []
-            # self.old_word_list[indx]["each_T"].append({})
-            # i = 0
-            # self.old_word_list[indx]["each_T"][i]["eng"] = self.old_word_list[indx]["eng"]
-            # del(self.old_word_list[indx]["eng"])
-            # self.old_word_list[indx]["each_T"][i]["chi"] = self.old_word_list[indx]["chi"]
-            # del(self.old_word_list[indx]["chi"])
-            # self.old_word_list[indx]["each_T"][i]["status"] = self.old_word_list[indx]["status"]
-            # del(self.old_word_list[indx]["status"])
-            # self.old_word_list[indx]["each_T"][i]["date"] = self.old_word_list[indx]["date"]
-            # del(self.old_word_list[indx]["date"])
-
-            # for each_other in self.old_word_list[indx]["other"] :
-            #     i += 1
-            #     self.old_word_list[indx]["each_T"].append({})
-            #     each_other_split = each_other.split(" ")
-            #     if len(each_other_split) > 2 :
-            #         print(each_other_split)
-            #     if each_other_split[0].isalpha() :
-            #         self.old_word_list[indx]["each_T"][i]["eng"] = each_other_split[0]
-            #         self.old_word_list[indx]["each_T"][i]["chi"] = " ".join(each_other_split[1:])
-            #     else :
-            #         self.old_word_list[indx]["each_T"][i]["eng"] = each_other_split[-1]
-            #         self.old_word_list[indx]["each_T"][i]["chi"] = " ".join(each_other_split[:-1])
-            #     self.old_word_list[indx]["each_T"][i]["status"] = 0
-            #     self.old_word_list[indx]["each_T"][i]["date"] = "2099/12/31"
+                if 'type' not in each_word:
+                    each_word['type'] = "eng"
 
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
@@ -295,7 +270,7 @@ if __name__ == "__main__" :
         if other :
             for indx, each_word in enumerate(rand_word["each_T"]) :
                 if indx != rand_word_indx :
-                    eng_and_other += " , " + each_word["sound"] if each_word["sound"] != "" else each_word["eng"]
+                    eng_and_other += " , " + (each_word["sound"] if each_word["sound"] != "" else each_word["eng"])
         word_to_sound(eng_and_other)
     
     # 按鈕初始化
@@ -381,6 +356,8 @@ if __name__ == "__main__" :
                 if "2099" in word["each_T"][next_indx]["date"] :
                     print("full next word :", word["each_T"][next_indx]["eng"] )
                     word["each_T"][next_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
+                    if word["each_T"][next_indx]["status"] == 0:
+                        word["each_T"][next_indx]["status"] = 5 
                 # 2. 如果有其他 滿state 的單字, 全部一起更新日期 並把下一個單字設定比較前面
                 rand_days = randrange(0,4)
                 for i in range(len(word["each_T"])) :

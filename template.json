@@ -1,16 +1,58 @@
 [
     {
-        "date": "2023/10/08",
-        "status": 0,
-        "eng": "conclusive",
-        "chi": "(a.)決定性的,確實的,最後的",
-        "association": "總結起來 決定性的"
+        "association": "ab + vert(turn away)",
+        "other": [
+            "aversion 厭惡,討厭的事,討厭的人"
+        ],
+        "similar": [],
+        "each_T": [
+            {
+                "eng": "averse",
+                "chi": "'(adj.)'嫌惡的,反感的,反對的,不樂意的",
+                "status": 13,
+                "date": "2024/02/19",
+                "ex": [],
+                "sound": "",
+                "type": "eng"
+            },
+            {
+                "eng": "aversion",
+                "chi": "厭惡,討厭的事,討厭的人",
+                "status": 13,
+                "date": "2021/12/31",
+                "ex": [],
+                "sound": "",
+                "type": "eng"
+            }
+        ]
     },
     {
-        "date": "2023/10/08",
-        "status": 3,
-        "eng": "motley",
-        "chi": "(a.)雜色的,斑雜的,雜多的,混雜的雜色,雜色衣服,混雜,小丑",
-        "association": "no"
+        "association": "",
+        "other": [
+            "convention 習俗"
+        ],
+        "similar": [
+            "方便的 convenient"
+        ],
+        "each_T": [
+            {
+                "eng": "conventionality",
+                "chi": "約定俗成,照慣例,慣例性",
+                "status": 7,
+                "date": "2024/01/24",
+                "ex": [],
+                "sound": "",
+                "type": "eng"
+            },
+            {
+                "eng": "convention",
+                "chi": "習俗",
+                "status": 0,
+                "date": "2099/12/31",
+                "ex": [],
+                "sound": "",
+                "type": "eng"
+            }
+        ]
     }
 ]
