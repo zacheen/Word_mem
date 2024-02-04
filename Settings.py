@@ -28,4 +28,6 @@ else :
         Json_file(r"D:\dont_move\word\toelf.json", 150, 2),
         Json_file(r"D:\dont_move\word\gre.json", 150, 2),
         Json_file(r"D:\dont_move\word\gre_new.json", 150, 0),
+        Json_file(r"D:\dont_move\word\Sound.json", 150, 0),
+        Json_file(r"D:\dont_move\word\Chi_To_Eng.json", 150, 0),
         ]

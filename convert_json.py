@@ -1,24 +1,78 @@
 # 這是把舊的格式(txt)轉換成新的格式(json)
 import json
 
-word_file_path = r"D:\dont_move\word\gre_test.txt"
+word_file_path = r"D:\dont_move\word\to_convert.txt"
 fr = open(word_file_path, "r")
+all_content = fr.readlines()
+read_indx = 0
+def next_line():
+    global read_indx
+    if read_indx >= len(all_content):
+        raise IndexError 
+    ret = all_content[read_indx]
+    read_indx += 1
+    return ret.strip()
+
 all_word = []
-for lines in fr :
-    lines = lines.strip()
-    w_info = lines.split("\t")
-    if len(w_info) == 1 :
-        continue
-    print(w_info)
-    each_Word = {
-        "date" : w_info[0],
-        "status" : int(w_info[1]),
-        "eng" : w_info[2],
-        "chi" : w_info[3],
-        "association" : w_info[4],
-        "other" : [],
-        "similar" : [],}
-    all_word.append(each_Word)
+while True :
+    split_method = "sound"
+    split_method = "ChiToEng"
+    try :
+        if split_method == "sound" :
+            read_line = next_line()
+            read_line = read_line.split(" ")
+            # print(read_line)
+            eng_word = read_line[0]
+            if len(read_line) > 1 :
+                sound = read_line[1]
+            else :
+                sound = ""
+            
+            each_Word = \
+            {
+                "association": "",
+                "similar": [
+                ],
+                "each_T": [
+                    {
+                        "eng": eng_word,
+                        "chi": "",
+                        "status": 0,
+                        "date": "2020/01/01",
+                        "ex": [],
+                        "sound": sound,
+                        "type": "sound"
+                    }
+                ]
+            }
+        elif split_method == "ChiToEng" :
+            read_line = next_line()
+            read_line = read_line.split(" ")
+            # print(read_line)
+            eng_word = " ".join(read_line[:-1])
+            chi_word = read_line[-1]
+            
+            chi_word = chi_word.replace("(","").replace(")","")
+            each_Word = \
+            {
+                "association": "",
+                "similar": [
+                ],
+                "each_T": [
+                    {
+                        "eng": eng_word,
+                        "chi": chi_word,
+                        "status": 0,
+                        "date": "2020/01/01",
+                        "ex": [],
+                        "sound": "",
+                        "type": "eng"
+                    }
+                ]
+            }
+        all_word.append(each_Word)
+    except IndexError :
+        break
 
 fr.close()
 

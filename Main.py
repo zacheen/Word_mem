@@ -259,9 +259,19 @@ if __name__ == "__main__" :
                 break
         if rand_word == None :
             til_the_end()
-        show_str = rand_word["each_T"][rand_word_indx]["eng"]
-        # play_word_eng(False) # 出現新單字要不要順便聽發音
-        show_txt.config(text = show_str )
+
+        show_str = ""
+        if rand_word["each_T"][rand_word_indx]["type"] == "sound" :
+            show_str = "(SOUND!!) " + rand_word["each_T"][rand_word_indx]["eng"]
+        elif rand_word["each_T"][rand_word_indx]["type"] == "spell" :
+            show_str = "(spell)"
+            play_word_eng(False)
+        elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
+            show_str = rand_word["each_T"][rand_word_indx]["chi"] + " (eng)"
+        else :
+            show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
+
+        show_txt.config(text = show_str)
 
     def play_word_eng(other = False):
         eng_and_other = (rand_word["each_T"][rand_word_indx]["sound"] 
@@ -295,7 +305,9 @@ if __name__ == "__main__" :
             button_status = 0
         else :
             # change to know
-            show_str = f'{show_txt.cget("text")} {rand_word["each_T"][rand_word_indx]["chi"]} ({rand_word["each_T"][rand_word_indx]["status"]})'
+            show_str = ""
+            # include type "eng", "chi", "sound", "spell"("sound", "spell" 是因為說不定有中文)
+            show_str = f'{rand_word["each_T"][rand_word_indx]["eng"]} {rand_word["each_T"][rand_word_indx]["chi"]} ({rand_word["each_T"][rand_word_indx]["status"]})'
             if rand_word["association"] :
                 show_str += "\n" +rand_word["association"]
             if len(rand_word["each_T"]) > 1 :
