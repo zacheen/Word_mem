@@ -183,7 +183,7 @@ class Words :
         # 備份
         if not SETT.TEST_FAIL :
             date_str = datetime.now().strftime(r"_%Y_%m_%d_%H_%M")
-            with open(self.word_file_path.replace(r"\word",r"\word\backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
+            with open(self.word_file_path.replace(r"\word",r"\word_backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
                 json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
 def add_new_word(word_file_path, word):
@@ -255,6 +255,9 @@ if __name__ == "__main__" :
                 rand_json.save()
                 all_json.remove(rand_json)
                 rand_weights = tuple(each_json.weight for each_json in all_json)
+                if SETT.STRICT_WEI :
+                    if sum(rand_weights) == 0 :
+                        break
             else :
                 break
         if rand_word == None :
