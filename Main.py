@@ -267,7 +267,7 @@ if __name__ == "__main__" :
             show_str = "(spell)"
             play_word_eng(False)
         elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
-            show_str = rand_word["each_T"][rand_word_indx]["chi"] + " (eng)"
+            show_str = rand_word["each_T"][rand_word_indx]["chi"] + " (eng) " + str(len(rand_word["each_T"]))
         else :
             show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
 
@@ -311,7 +311,6 @@ if __name__ == "__main__" :
             if rand_word["association"] :
                 show_str += "\n" +rand_word["association"]
             if len(rand_word["each_T"]) > 1 :
-                show_str += "\n" + "other type : "
                 for indx, each_word in enumerate(rand_word["each_T"]) :
                     if indx != rand_word_indx :
                         show_str += "\n" + each_word["eng"] + " " + each_word["chi"]
