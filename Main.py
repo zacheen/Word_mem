@@ -115,6 +115,8 @@ class Words :
                     each_word['sound'] = ""
                 if 'type' not in each_word:
                     each_word['type'] = "eng"
+                if 'def' not in each_word:
+                    each_word['def'] = []
 
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
@@ -371,7 +373,7 @@ if __name__ == "__main__" :
                     print("full next word :", word["each_T"][next_indx]["eng"] )
                     word["each_T"][next_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
                     if word["each_T"][next_indx]["status"] == 0:
-                        word["each_T"][next_indx]["status"] = 5 
+                        word["each_T"][next_indx]["status"] = 7
                 # 2. 如果有其他 滿state 的單字, 全部一起更新日期 並把下一個單字設定比較前面
                 rand_days = randrange(0,4)
                 for i in range(len(word["each_T"])) :
