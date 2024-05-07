@@ -6,9 +6,10 @@ class Json_file:
         self.NEAR_FIRST = NEAR_FIRST
         self.weight = weight
 
-DAYS = [0,1,1,1,2,3,5,7,15,23,31,31,45,90,180] # 365 感覺沒有必要了
+DAYS = [0,1,1,2,3,4,5,7,15,20,26,33,45,90,180] # 365 感覺沒有必要了
 long_term_mem_threshold = DAYS.index(7)
 D45_indx = DAYS.index(45)
+FULL_LEVEL = len(DAYS) - 1
 print("long_term indx :", long_term_mem_threshold)
 DATE_FORMAT = r"%Y/%m/%d"
 PLAY_SOUND = True

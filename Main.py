@@ -57,7 +57,7 @@ def write_wrong_word(wrong_word_list, file_path):
     fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
     json.dump(wrong_word_list, fw, indent = 4, ensure_ascii=False)
     fw.close()
-        
+                    
 all_word_map = {}
 def deal_all_word():
     for each_json in all_json :
@@ -117,6 +117,11 @@ class Words :
                     each_word['type'] = "eng"
                 if 'def' not in each_word:
                     each_word['def'] = []
+                
+            # # 處理每個組合
+            for indx in range(len(self.old_word_list)) :
+                if 'other' in self.old_word_list[indx] : # 刪除 'other'
+                    del(self.old_word_list[indx]['other'])
 
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
@@ -274,8 +279,11 @@ if __name__ == "__main__" :
         elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
             show_str = rand_word["each_T"][rand_word_indx]["chi"] + " (eng) " + str(len(rand_word["each_T"]))
         else :
-            show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
-
+            # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
+            if rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
+                play_word_eng(False)
+            else :
+                show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
         show_txt.config(text = show_str)
 
     def play_word_eng(other = False):
@@ -330,6 +338,12 @@ if __name__ == "__main__" :
                                 break
                     else :
                         show_str += "\n" + each_sim
+            if "def" in rand_word["each_T"][rand_word_indx] :
+                for each_def in rand_word["each_T"][rand_word_indx]["def"] :
+                    show_str += "\n" + each_def
+            if "ex" in rand_word["each_T"][rand_word_indx] :
+                for each_def in rand_word["each_T"][rand_word_indx]["ex"] :
+                    show_str += "\n" + each_def
             show_txt.config(text=show_str)
             place_weight = [2,1,1,2]
             weight_sum = sum(place_weight)
@@ -350,14 +364,14 @@ if __name__ == "__main__" :
     
     # 按鈕 function
     def test_pass(word):
-        # word["each_T"][rand_word_indx]["status"] = min(max(word["each_T"][rand_word_indx]["status"]+1,long_term_mem_threshold+2), len(SETT.DAYS)-1) # 很久沒有測驗 通過就直接算會了
+        # word["each_T"][rand_word_indx]["status"] = min(max(word["each_T"][rand_word_indx]["status"]+1,long_term_mem_threshold+2), SETT.FULL_LEVEL) # 很久沒有測驗 通過就直接算會了
         if SETT.TEST_FAIL :
-            word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, len(SETT.DAYS)-1)
+            word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, SETT.FULL_LEVEL)
             if word["each_T"][rand_word_indx]["status"] > SETT.WRONG_WORD_PASS :
                 word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
             rand_json.insert_back(word)
         else :
-            word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, len(SETT.DAYS)-1)
+            word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, SETT.FULL_LEVEL)
             shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
             if word["each_T"][rand_word_indx]["status"] > (SETT.long_term_mem_threshold+2) :
                 shift_days += randrange(0,4)
@@ -377,7 +391,7 @@ if __name__ == "__main__" :
                 # 2. 如果有其他 滿state 的單字, 全部一起更新日期 並把下一個單字設定比較前面
                 rand_days = randrange(0,4)
                 for i in range(len(word["each_T"])) :
-                    if word["each_T"][i]["status"] >= len(SETT.DAYS)-1 : # 滿等才需要因為其他正確跟著改日期
+                    if word["each_T"][i]["status"] >= SETT.FULL_LEVEL : # 滿等才需要因為其他正確跟著改日期
                         shift_days = SETT.DAYS[word["each_T"][i]["status"]] + rand_days
                         if i == next_indx :
                             shift_days -= 1
