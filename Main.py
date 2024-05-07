@@ -2,13 +2,14 @@ import json
 import sys
 import os
 from datetime import datetime,timedelta 
+import time
 from random import randrange,choices
 import copy
 import Settings as SETT
 import tkinter as tk
 import tkinter.messagebox as messagebox
 
-from Util import *
+import Util
 
 def til_the_end():
     messagebox.showinfo(title = 'Finish', # 視窗標題
@@ -280,8 +281,13 @@ if __name__ == "__main__" :
             show_str = rand_word["each_T"][rand_word_indx]["chi"] + " (eng) " + str(len(rand_word["each_T"]))
         else :
             # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
-            if rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
+            if not Util.no_network and rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
+                show_str = "(spell)"
                 play_word_eng(False)
+                # There's still a chance that the first one might encounter bugs, but it rarely occurs.
+                time.sleep(0.2)
+                if Util.no_network : 
+                    show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
             else :
                 show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
         show_txt.config(text = show_str)
@@ -294,7 +300,7 @@ if __name__ == "__main__" :
             for indx, each_word in enumerate(rand_word["each_T"]) :
                 if indx != rand_word_indx :
                     eng_and_other += " , " + (each_word["sound"] if each_word["sound"] != "" else each_word["eng"])
-        word_to_sound(eng_and_other)
+        Util.word_to_sound(eng_and_other)
     
     # 按鈕初始化
     button_show_ans = tk.Button(window,text = '顯示翻譯(up)',font = ('黑體', 15))
