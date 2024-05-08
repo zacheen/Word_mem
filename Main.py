@@ -194,6 +194,28 @@ class Words :
             with open(self.word_file_path.replace(r"\word",r"\word_backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
                 json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
+class Related :
+    def __init__(self, related_file_path):
+        self.related_un = Util.UF_find_relate()
+        fr = open(related_file_path, "r", encoding='UTF-8')
+        last_related_word = ""
+        for each_word in fr:
+            if each_word == "" :
+                continue
+            # 處理單字
+            this_word = (each_word.split("/"))[0].strip()
+
+            if this_word == "":
+                last_related_word = ""
+            else :
+                self.related_un.add_item(this_word)
+                if last_related_word == "" :
+                    last_related_word = this_word
+                else :
+                    self.related_un.union(this_word, last_related_word)
+        fr.close()
+        print("self.related_un : ",self.related_un.set_member)
+
 def add_new_word(word_file_path, word):
     word_file_path = word_file_path.replace(".","_new.")
     print(word_file_path)
@@ -210,6 +232,9 @@ if __name__ == "__main__" :
     deal_all_word()
     rand_weights = tuple(each_json.weight for each_json in all_json)
     print("rand_weights :",rand_weights)
+
+    # similar set 讀取有相關的單字
+    all_related = [Related(each_related_file) for each_related_file in SETT.all_related_files]
     
     import atexit
     def when_exit():

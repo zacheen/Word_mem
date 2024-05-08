@@ -1,6 +1,35 @@
 import threading
 import Settings as SETT
 
+class UF_find_relate:
+    def __init__(self):
+        self.id = {}
+        self.set_member = {}
+        print("set_member :",self.set_member)
+    
+    def add_item(self, item):
+        self.id[item] = item
+        self.set_member[item] = set([item])
+
+    def union(self, u, v):
+        i = self.find(u)
+        j = self.find(v)
+        if i == j:
+            return
+        self.set_member[j] = self.set_member[j] | self.set_member[i]
+        del(self.set_member[i])
+        self.id[i] = j
+
+    def find(self, u):
+        if self.id[u] != u:
+            self.id[u] = self.find(self.id[u])
+        return self.id[u]
+    
+    def ger_related(self, u):
+        if self.id[u] != u:
+            self.id[u] = self.find(self.id[u])
+        return self.set_member[self.id[u]]
+
 import requests
 no_network = False
 def word_to_sound(word, language = "en"):

@@ -6,6 +6,10 @@ class Json_file:
         self.NEAR_FIRST = NEAR_FIRST
         self.weight = weight
 
+class Related_file:
+    def __init__(self, related_file_path):
+        self.related_file_path = related_file_path
+
 DAYS = [0,1,1,2,3,4,5,7,15,20,26,33,45,90,180] # 365 感覺沒有必要了
 long_term_mem_threshold = DAYS.index(7)
 D45_indx = DAYS.index(45)
@@ -33,3 +37,7 @@ else :
         # Json_file(r"D:\dont_move\word\gre_new.json", 150, 0),
         ]
 STRICT_WEI = False
+
+all_related_files = [
+   r"D:\dont_move\word\word_similar.txt",
+]
