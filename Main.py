@@ -62,13 +62,15 @@ def write_wrong_word(wrong_word_list, file_path):
 all_word_map = {}
 def deal_all_word():
     for each_json in all_json :
-        # link similar
-        for indx in range(len(each_json.old_word_list)):
-            for indx_sim, each_word in enumerate(each_json.old_word_list[indx]["similar"]) :
-                for each_poss in each_word.split(" ") :
-                    if each_poss.isalpha() and each_poss.islower() :
-                        if each_poss in all_word_map :
-                            each_json.old_word_list[indx]["similar"][indx_sim] = each_poss + " @"
+        pass
+        # link similar # 如果 similar 的單字其實已經存在就直接改成 "XX @"
+        # old version code, if it still needed, have to twist it.
+        # for indx in range(len(each_json.old_word_list)):
+        #     for indx_sim, each_word in enumerate(each_json.old_word_list[indx]["similar"]) :
+        #         for each_poss in each_word.split(" ") :
+        #             if each_poss.isalpha() and each_poss.islower() :
+        #                 if each_poss in all_word_map :
+        #                     each_json.old_word_list[indx]["similar"][indx_sim] = each_poss + " @"
 class Words :
     def __init__(self, Settings):
         self.word_file_path = Settings.word_file_path
@@ -103,7 +105,7 @@ class Words :
         for indx in range(len(self.old_word_list)):
             # 確認沒有重複的
             for each_word in self.old_word_list[indx]["each_T"] :
-                if each_word["eng"] in all_word_map :
+                if each_word["chi"] != "@" and each_word["eng"] in all_word_map :
                     print("same!! : ", each_word["eng"])
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
@@ -194,27 +196,30 @@ class Words :
             with open(self.word_file_path.replace(r"\word",r"\word_backup").replace(".json", date_str+".json"), "w", encoding='UTF-8') as fw:
                 json.dump(all_words, fw, indent = 4, ensure_ascii=False)
 
-class Related :
+small_dict = {}
+class Related(Util.UF_find_relate) :
     def __init__(self, related_file_path):
-        self.related_un = Util.UF_find_relate()
+        Util.UF_find_relate.__init__(self)
         fr = open(related_file_path, "r", encoding='UTF-8')
         last_related_word = ""
         for each_word in fr:
             if each_word == "" :
                 continue
             # 處理單字
-            this_word = (each_word.split("/"))[0].strip()
+            each_word_split = each_word.split(" / ")
+            this_word = each_word_split[0].strip()
+            if len(each_word_split) >= 2 :
+                small_dict[this_word] = each_word_split[1].strip()
 
             if this_word == "":
                 last_related_word = ""
             else :
-                self.related_un.add_item(this_word)
                 if last_related_word == "" :
                     last_related_word = this_word
                 else :
-                    self.related_un.union(this_word, last_related_word)
+                    self.union(this_word, last_related_word)
         fr.close()
-        print("self.related_un : ",self.related_un.set_member)
+        print("self : ",self.set_member)
 
 def add_new_word(word_file_path, word):
     word_file_path = word_file_path.replace(".","_new.")
@@ -229,6 +234,13 @@ def add_new_word(word_file_path, word):
 
 if __name__ == "__main__" :
     all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
+    # print("----------------------------------------")
+    # UF_find_relate_print = Util.UF_find_relate()
+    # for each_set in UF_find_relate_print.set_member.values():
+    #     print("\n")
+    #     for each_word in each_set :
+    #         print(each_word)
+    # print("----------------------------------------")
     deal_all_word()
     rand_weights = tuple(each_json.weight for each_json in all_json)
     print("rand_weights :",rand_weights)
@@ -351,30 +363,45 @@ if __name__ == "__main__" :
             # change to know
             show_str = ""
             # include type "eng", "chi", "sound", "spell"("sound", "spell" 是因為說不定有中文)
-            show_str = f'{rand_word["each_T"][rand_word_indx]["eng"]} {rand_word["each_T"][rand_word_indx]["chi"]} ({rand_word["each_T"][rand_word_indx]["status"]})'
+            eng_str = rand_word["each_T"][rand_word_indx]["eng"]
+            chi_str = rand_word["each_T"][rand_word_indx]["chi"]
+            # if chi_str == "@" :
+                
+            #     for each_w in all_word_map[eng_str] : 
+            #         chi_str = 
+            show_str = f'{eng_str} {chi_str} ({rand_word["each_T"][rand_word_indx]["status"]})'
             if rand_word["association"] :
                 show_str += "\n" +rand_word["association"]
             if len(rand_word["each_T"]) > 1 :
                 for indx, each_word in enumerate(rand_word["each_T"]) :
                     if indx != rand_word_indx :
                         show_str += "\n" + each_word["eng"] + " " + each_word["chi"]
-            if "similar" in rand_word and len(rand_word["similar"])>0 :
-                show_str += "\n" + "similar : "
-                for each_sim in rand_word["similar"] :
-                    if " @" in each_sim :
-                        each_sim = each_sim.replace(" @","")
-                        for each_type in all_word_map[each_sim]["each_T"] :
-                            if each_type['eng'] == each_sim :
-                                show_str += "\n" + each_sim + " " + each_type['chi']
-                                break
-                    else :
-                        show_str += "\n" + each_sim
             if "def" in rand_word["each_T"][rand_word_indx] :
                 for each_def in rand_word["each_T"][rand_word_indx]["def"] :
                     show_str += "\n" + each_def
             if "ex" in rand_word["each_T"][rand_word_indx] :
                 for each_def in rand_word["each_T"][rand_word_indx]["ex"] :
                     show_str += "\n" + each_def
+            
+            for each_related in all_related :
+                this_eng_word = rand_word["each_T"][rand_word_indx]["eng"]
+                sim_res = each_related.ger_related(this_eng_word)
+                if len(sim_res) >= 2 :
+                    show_str += "\n" + "similar : "
+                    for each_sim in sim_res :
+                        if each_sim == this_eng_word :
+                            continue
+                        chi = small_dict.get(each_sim, None)
+                        if chi != None :
+                            show_str += "\n" + each_sim + " " + chi
+                        elif each_sim in all_word_map :
+                            for each_type in all_word_map[each_sim]["each_T"] :
+                                if each_type['eng'] == each_sim :
+                                    show_str += "\n" + each_sim + " " + each_type['chi']
+                                    break
+                        else :
+                            show_str += "\n" + each_sim
+            
             show_txt.config(text=show_str)
             place_weight = [2,1,1,2]
             weight_sum = sum(place_weight)

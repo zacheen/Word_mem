@@ -7,28 +7,44 @@ class UF_find_relate:
         self.set_member = {}
         print("set_member :",self.set_member)
     
+    # won't dirrectly use this function
+    # because when using "union" it will be adding automatically
+    # if only one item needs to be added, it means that no other is related to this item, so no related result
     def add_item(self, item):
         self.id[item] = item
         self.set_member[item] = set([item])
 
-    def union(self, u, v):
-        i = self.find(u)
-        j = self.find(v)
-        if i == j:
+    # if a new item appears, add it automatically
+    def union(self, i1, i2):
+        f1 = self.find(i1)
+        if f1 == None :
+            self.add_item(i1)
+            f1 = i1
+        f2 = self.find(i2)
+        if f2 == None :
+            self.add_item(i2)
+            f2 = i2
+        
+        if f1 == f2:
             return
-        self.set_member[j] = self.set_member[j] | self.set_member[i]
-        del(self.set_member[i])
-        self.id[i] = j
+        self.set_member[f1] = self.set_member[f2] | self.set_member[f1]
+        del(self.set_member[f2])
+        self.id[f2] = f1
 
-    def find(self, u):
-        if self.id[u] != u:
-            self.id[u] = self.find(self.id[u])
-        return self.id[u]
+    # if the item didn't save in list, return None
+    def find(self, item):
+        res = self.id.get(item, None)
+        if res == None :
+            return None
+        if res != item:
+            self.id[item] = self.find(res)
+        return self.id[item]
     
-    def ger_related(self, u):
-        if self.id[u] != u:
-            self.id[u] = self.find(self.id[u])
-        return self.set_member[self.id[u]]
+    def ger_related(self, item):
+        ret = self.find(item)
+        if ret == None :
+            return set([item])
+        return self.set_member[ret]
 
 import requests
 no_network = False
@@ -39,7 +55,6 @@ def word_to_sound(word, language = "en"):
     class My_thread (threading.Thread):   #繼承父類threading.Thread
         def run(self): #把要執行的代碼寫到run函數里面 線程在創建後會直接運行run函數     
             global no_network
-            print("no_network in word_to_sound :",no_network)
             url = f"http://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&tl={language}&q={word}"
             try :
                 response = requests.get(url)
