@@ -203,6 +203,8 @@ class Related(Util.UF_find_relate) :
         fr = open(related_file_path, "r", encoding='UTF-8')
         last_related_word = ""
         for each_word in fr:
+            if "-----" in each_word :
+                break
             if each_word == "" :
                 continue
             # 處理單字
