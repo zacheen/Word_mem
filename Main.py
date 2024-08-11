@@ -22,16 +22,28 @@ wrong_word_list = []
 again_word_list = []
 def add_wrong_word(word, word_list):
     new_wrong_word = copy.deepcopy(word)
+    # 這裡改錯誤的那個單字的 info
     new_wrong_word["each_T"][rand_word_indx]["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
     new_wrong_word["each_T"][rand_word_indx]["status"] = min(new_wrong_word["each_T"][rand_word_indx]["status"], 5)
     word_list.append(new_wrong_word)
 
     # 從所有的單字中找出 similar 連結的單字
-    for each_sim in new_wrong_word["similar"] :
-        if " @" in each_sim :
-            each_sim = each_sim.replace(" @","")
+    for each_related in all_related :
+        this_eng_word = word["each_T"][rand_word_indx]["eng"]
+        sim_res = each_related.ger_related(this_eng_word)
+        for each_sim in sim_res :
+            print(each_sim, this_eng_word)
+            if each_sim == this_eng_word :
+                print("same")
+                continue
+            # 相似的也參與錯誤考試中 ??
             if each_sim in all_word_map :
-                word_list.append(all_word_map[each_sim])
+                word_whole = all_word_map[each_sim]
+                for each_w in word_whole["each_T"] :
+                    if each_w["eng"] == sim_res :
+                        each_w["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
+                word_list.append(word_whole)
+            # else # 不用 else 因為通常是很簡單的
 
 def write_wrong_word(wrong_word_list, file_path):
     if SETT.TEST_FAIL :
@@ -125,7 +137,8 @@ class Words :
             for indx in range(len(self.old_word_list)) :
                 if 'other' in self.old_word_list[indx] : # 刪除 'other'
                     del(self.old_word_list[indx]['other'])
-
+                if "similar" in self.old_word_list[indx] :
+                    del(self.old_word_list[indx]['similar'])
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
