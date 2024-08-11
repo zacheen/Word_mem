@@ -392,8 +392,11 @@ if __name__ == "__main__" :
                 for each_def in rand_word["each_T"][rand_word_indx]["def"] :
                     show_str += "\n" + each_def
             if "ex" in rand_word["each_T"][rand_word_indx] :
-                for each_def in rand_word["each_T"][rand_word_indx]["ex"] :
-                    show_str += "\n" + each_def
+                for indx, each_ex in enumerate(rand_word["each_T"][rand_word_indx]["ex"]) :
+                    if "'" not in each_ex :
+                        each_ex = each_ex.replace(eng_str,f"'{eng_str}'")
+                        rand_word["each_T"][rand_word_indx]["ex"][indx] = each_ex
+                    show_str += "\n" + each_ex
             
             for each_related in all_related :
                 this_eng_word = rand_word["each_T"][rand_word_indx]["eng"]

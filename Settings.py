@@ -10,14 +10,13 @@ class Related_file:
     def __init__(self, related_file_path):
         self.related_file_path = related_file_path
 
-DAYS = [0,1,1,2,3,4,5,7,15,20,26,33,45,90,180] # 365 感覺沒有必要了
+DAYS = [0,1,1,2,3,4,5,7,15,20,26,33,45,90,120] # 180 天感覺有時候都忘了
 long_term_mem_threshold = DAYS.index(7)
 D45_indx = DAYS.index(45)
 FULL_LEVEL = len(DAYS) - 1
 print("long_term indx :", long_term_mem_threshold)
 DATE_FORMAT = r"%Y/%m/%d"
 PLAY_SOUND = True
-# PLAY_SOUND = False
 WRONG_WORD_PATH = r"G:\我的雲端硬碟\__wrong_word.txt"
 AGAIN_WORD_PATH = r"G:\我的雲端硬碟\__again_word.txt"
 WRONG_WORD_PASS = 6
