@@ -262,6 +262,16 @@ if __name__ == "__main__" :
     # UI 介面
     window = tk.Tk()
     window.title('word_mem')
+    def detect_focus(event):
+        if event.widget == window:
+            # print("gained the focus")
+            window.isfocus = True
+    def detect_unfocus(event):
+        if event.widget == window:
+            # print("lost the focus")
+            window.isfocus = False
+    window.bind("<FocusIn>", detect_focus)
+    window.bind("<FocusOut>", detect_unfocus)
     # window.state("zoomed") # 有BUG 會直接點到後面
     window.geometry("1350x650+100+50")
     word_show_weight = 0.5
@@ -500,6 +510,8 @@ if __name__ == "__main__" :
     # 按鍵偵測
     from pynput import keyboard
     def on_release(key):
+        if not window.isfocus :
+            return
         if button_status > 0:
             if key == keyboard.Key.left:
                 test_pass(rand_word)
