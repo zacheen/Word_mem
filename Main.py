@@ -83,6 +83,40 @@ class Words :
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         fr.close()
         self.new_word_list = []
+
+        status_count = 0
+        know_count = 0
+        for indx in range(len(self.old_word_list)):
+            # 確認沒有重複的
+            for each_word in self.old_word_list[indx]["each_T"] :
+                if each_word["eng"] in all_word_map :
+                    if each_word["chi"] != "@" :
+                        print("same!! :", each_word["eng"])
+                else :
+                    all_word_map[each_word["eng"]] = self.old_word_list[indx]
+
+            # # 處理每個組合
+            if 'other' in self.old_word_list[indx] : # 刪除 'other'
+                del(self.old_word_list[indx]['other'])
+            if "similar" in self.old_word_list[indx] : # 刪除 'similar'
+                del(self.old_word_list[indx]['similar'])
+
+            # # 處理每個字
+            for each_word in self.old_word_list[indx]["each_T"] :
+                if 'ex' not in each_word:
+                    each_word['ex'] = []
+                if 'sound' not in each_word:
+                    each_word['sound'] = ""
+                if 'type' not in each_word:
+                    each_word['type'] = "eng"
+                if 'def' not in each_word:
+                    each_word['def'] = []
+            
+            # 計算狀態 (同字根的單字只計算第一個)
+            if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
+                know_count += 1
+            status_count += self.old_word_list[indx]['each_T'][0]["status"]
+        
         # 找 random 起使位置
         self.start_indx = len(self.old_word_list)
         break_flag = False
@@ -96,45 +130,12 @@ class Words :
                     break
             if break_flag :
                 break
+        
         print(f"--  {self.word_file_path}  --------------------------------")
-        print("今日已讀單字 :", self.start_indx) # 有點不准，不過差不多啦
-
-        status_count = 0
-        know_count = 0
-        for indx in range(len(self.old_word_list)):
-            # 確認沒有重複的
-            for each_word in self.old_word_list[indx]["each_T"] :
-                if each_word["eng"] in all_word_map :
-                    if each_word["chi"] != "@" :
-                        print("same!! :", each_word["eng"])
-                else :
-                    all_word_map[each_word["eng"]] = self.old_word_list[indx]
-
-            # # 處理每個字
-            for each_word in self.old_word_list[indx]["each_T"] :
-                if 'ex' not in each_word:
-                    each_word['ex'] = []
-                if 'sound' not in each_word:
-                    each_word['sound'] = ""
-                if 'type' not in each_word:
-                    each_word['type'] = "eng"
-                if 'def' not in each_word:
-                    each_word['def'] = []
-                
-            # # 處理每個組合
-            for indx in range(len(self.old_word_list)) :
-                if 'other' in self.old_word_list[indx] : # 刪除 'other'
-                    del(self.old_word_list[indx]['other'])
-                if "similar" in self.old_word_list[indx] :
-                    del(self.old_word_list[indx]['similar'])
-            # 計算狀態 (同字根的單字只計算第一個)
-            if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
-                know_count += 1
-            status_count += self.old_word_list[indx]['each_T'][0]["status"]
+        print("今日已讀單字 :", self.start_indx) # 有點不准，不過不會差太多
         print("總共讀取單字數量 :", len(self.old_word_list))
         # print("學會單字數量 :", know_count)
         # print("錯誤單字數量 :", len(self.old_word_list) - know_count)
-        # print("status 總和 :", status_count)
         print("status 平均 :", status_count / len(self.old_word_list))
 
     # 方法1 : 隨機直到日期以內
@@ -186,6 +187,7 @@ class Words :
         # print("錯誤單字數量 :", len(all_words) - know_count)
         # print("status 總和 :", status_count)
         print("status 平均 :", status_count / len(all_words))
+
         # 寫入
         with open(self.word_file_path, "w", encoding='UTF-8') as fw:
             if SETT.TEST_FAIL :
