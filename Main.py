@@ -32,15 +32,13 @@ def add_wrong_word(word, word_list):
         this_eng_word = word["each_T"][rand_word_indx]["eng"]
         sim_res = each_related.ger_related(this_eng_word)
         for each_sim in sim_res :
-            print(each_sim, this_eng_word)
             if each_sim == this_eng_word :
-                print("same")
                 continue
             # 相似的也參與錯誤考試中 ??
             if each_sim in all_word_map :
                 word_whole = all_word_map[each_sim]
                 for each_w in word_whole["each_T"] :
-                    if each_w["eng"] == sim_res :
+                    if each_w["eng"] == each_sim :
                         each_w["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
                 word_list.append(word_whole)
             # else # 不用 else 因為通常是很簡單的
@@ -72,17 +70,6 @@ def write_wrong_word(wrong_word_list, file_path):
     fw.close()
                     
 all_word_map = {}
-def deal_all_word():
-    for each_json in all_json :
-        pass
-        # link similar # 如果 similar 的單字其實已經存在就直接改成 "XX @"
-        # old version code, if it still needed, have to twist it.
-        # for indx in range(len(each_json.old_word_list)):
-        #     for indx_sim, each_word in enumerate(each_json.old_word_list[indx]["similar"]) :
-        #         for each_poss in each_word.split(" ") :
-        #             if each_poss.isalpha() and each_poss.islower() :
-        #                 if each_poss in all_word_map :
-        #                     each_json.old_word_list[indx]["similar"][indx_sim] = each_poss + " @"
 class Words :
     def __init__(self, Settings):
         self.word_file_path = Settings.word_file_path
@@ -90,7 +77,7 @@ class Words :
         self.weight = Settings.weight
         self.now_time = datetime.now()
         fr = open(self.word_file_path, "r", encoding='UTF-8')
-        # 排除錯誤檔案 第一行紀錄的日期
+        # 練習錯誤的檔案 第一行用來紀錄的日期 所以要排除
         if SETT.TEST_FAIL :
             self.read_date = fr.readline()
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
@@ -117,8 +104,9 @@ class Words :
         for indx in range(len(self.old_word_list)):
             # 確認沒有重複的
             for each_word in self.old_word_list[indx]["each_T"] :
-                if each_word["chi"] != "@" and each_word["eng"] in all_word_map :
-                    print("same!! : ", each_word["eng"])
+                if each_word["eng"] in all_word_map :
+                    if each_word["chi"] != "@" :
+                        print("same!! :", each_word["eng"])
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
@@ -234,7 +222,6 @@ class Related(Util.UF_find_relate) :
                 else :
                     self.union(this_word, last_related_word)
         fr.close()
-        print("self : ",self.set_member)
 
 def add_new_word(word_file_path, word):
     word_file_path = word_file_path.replace(".","_new.")
@@ -256,7 +243,6 @@ if __name__ == "__main__" :
     #     for each_word in each_set :
     #         print(each_word)
     # print("----------------------------------------")
-    deal_all_word()
     rand_weights = tuple(each_json.weight for each_json in all_json)
     print("rand_weights :",rand_weights)
 
@@ -340,7 +326,15 @@ if __name__ == "__main__" :
             show_str = "(spell)"
             play_word_eng(False)
         elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
-            show_str = rand_word["each_T"][rand_word_indx]["chi"] + " (eng) " + str(len(rand_word["each_T"]))
+            global rand_word_chi
+            rand_word_chi = rand_word["each_T"][rand_word_indx]["chi"]
+            if rand_word_chi == "@" :
+                print("find @")
+                this_eng = rand_word["each_T"][rand_word_indx]["eng"]
+                for each_w in all_word_map[this_eng]["each_T"] : 
+                    if each_w["eng"] == this_eng :
+                        rand_word_chi = each_w["chi"]
+            show_str = rand_word_chi + " (eng) " + str(len(rand_word["each_T"]))
         else :
             # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
             if not Util.no_network and rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
@@ -390,10 +384,8 @@ if __name__ == "__main__" :
             # include type "eng", "chi", "sound", "spell"("sound", "spell" 是因為說不定有中文)
             eng_str = rand_word["each_T"][rand_word_indx]["eng"]
             chi_str = rand_word["each_T"][rand_word_indx]["chi"]
-            # if chi_str == "@" :
-                
-            #     for each_w in all_word_map[eng_str] : 
-            #         chi_str = 
+            if chi_str == "@" :
+                chi_str = rand_word_chi
             show_str = f'{eng_str} {chi_str} ({rand_word["each_T"][rand_word_indx]["status"]})'
             if rand_word["association"] :
                 show_str += "\n" +rand_word["association"]
@@ -425,7 +417,7 @@ if __name__ == "__main__" :
                         elif each_sim in all_word_map :
                             for each_type in all_word_map[each_sim]["each_T"] :
                                 if each_type['eng'] == each_sim :
-                                    show_str += "\n" + each_sim + " " + each_type['chi']
+                                    show_str += "\n" + each_sim + " " + each_type["chi"]
                                     break
                         else :
                             show_str += "\n" + each_sim
@@ -461,6 +453,8 @@ if __name__ == "__main__" :
             shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
             if word["each_T"][rand_word_indx]["status"] > (SETT.long_term_mem_threshold+2) :
                 shift_days += randrange(0,4)
+            elif word["each_T"][rand_word_indx]["status"] > 3 :
+                shift_days += randrange(-1,2)
             word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             
             # 如果前一個單字已經 滿state
