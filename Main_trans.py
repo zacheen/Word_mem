@@ -192,7 +192,6 @@ class Words :
         print("今日已讀單字 :", self.start_indx)
         # print("學會單字數量 :", know_count)
         # print("錯誤單字數量 :", len(all_words) - know_count)
-        # print("status 總和 :", status_count)
         print("status 平均 :", status_count / len(all_words))
 
         # 寫入
@@ -209,7 +208,7 @@ class Words :
 small_dict = {}
 class Related(Util.UF_find_relate) :
     def __init__(self, related_file_path):
-        Util.UF_find_relate.__init__(self)
+        super().__init__()
         fr = open(related_file_path, "r", encoding='UTF-8')
         last_related_word = ""
         for each_word in fr:
@@ -332,13 +331,6 @@ def play_word_eng(other = False, play_word = None, play_word_indx = None):
 
 if __name__ == "__main__" :
     all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
-    # print("----------------------------------------")
-    # UF_find_relate_print = Util.UF_find_relate()
-    # for each_set in UF_find_relate_print.set_member.values():
-    #     print("\n")
-    #     for each_word in each_set :
-    #         print(each_word)
-    # print("----------------------------------------")
     rand_weights = tuple(each_json.weight for each_json in all_json)
     print("rand_weights :",rand_weights)
 
@@ -461,12 +453,10 @@ if __name__ == "__main__" :
             button_test_fail.place(relx=relx_pos[3],rely=word_show_weight,relheight=1-word_show_weight,relwidth=place_weight[3])
             button_show_ans.place_forget()
             button_status = 1
-        # print("switch finish now button_status :",button_status)
     switch_button()
     
     # 按鈕 function
     def test_pass(word):
-        # word["each_T"][rand_word_indx]["status"] = min(max(word["each_T"][rand_word_indx]["status"]+1,long_term_mem_threshold+2), SETT.FULL_LEVEL) # 很久沒有測驗 通過就直接算會了
         if SETT.TEST_FAIL :
             word["each_T"][rand_word_indx]["status"] = min(word["each_T"][rand_word_indx]["status"]+1, SETT.FULL_LEVEL)
             if word["each_T"][rand_word_indx]["status"] > SETT.WRONG_WORD_PASS :
@@ -527,7 +517,6 @@ if __name__ == "__main__" :
     def test_hard(word):
         word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)
         word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-1, 0)
-        # rand_json.add_word_last(word)
         add_new_word(rand_json.word_file_path, word)
         switch_button()
 
