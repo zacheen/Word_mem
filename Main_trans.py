@@ -50,7 +50,7 @@ def write_wrong_word(wrong_word_list, file_path):
     # 讀取檔案的日期
     fr = None
     if os.path.isfile(file_path) :
-        fr = open(file_path, "r")
+        fr = open(file_path, "r", encoding='UTF-8')
         wrong_date = fr.readline()
         wrong_date = datetime.strptime(wrong_date[:-1], SETT.DATE_FORMAT)
         if wrong_date > datetime.now() :
@@ -71,7 +71,7 @@ def write_wrong_word(wrong_word_list, file_path):
                     
 all_word_map = {}
 class Words :
-    def __init__(self, Settings):
+    def __init__(self, Settings, main_type = "trans"):
         self.word_file_path = Settings.word_file_path
         self.NEAR_FIRST = Settings.NEAR_FIRST
         self.weight = Settings.weight
@@ -96,21 +96,23 @@ class Words :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
             # # 處理每個組合
-            if 'other' in self.old_word_list[indx] : # 刪除 'other'
-                del(self.old_word_list[indx]['other'])
-            if "similar" in self.old_word_list[indx] : # 刪除 'similar'
-                del(self.old_word_list[indx]['similar'])
+            if main_type == "trans":
+                if 'other' in self.old_word_list[indx] : # 刪除 'other'
+                    del(self.old_word_list[indx]['other'])
+                if "similar" in self.old_word_list[indx] : # 刪除 'similar'
+                    del(self.old_word_list[indx]['similar'])
 
             # # 處理每個字
             for each_word in self.old_word_list[indx]["each_T"] :
-                if 'ex' not in each_word:
-                    each_word['ex'] = []
-                if 'sound' not in each_word:
-                    each_word['sound'] = ""
-                if 'type' not in each_word:
-                    each_word['type'] = "eng"
-                if 'def' not in each_word:
-                    each_word['def'] = []
+                if main_type == "trans":
+                    if 'ex' not in each_word:
+                        each_word['ex'] = []
+                    if 'sound' not in each_word:
+                        each_word['sound'] = ""
+                    if 'type' not in each_word:
+                        each_word['type'] = "eng"
+                    if 'def' not in each_word:
+                        each_word['def'] = []
             
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
@@ -254,6 +256,7 @@ if __name__ == "__main__" :
     import atexit
     def when_exit():
         global rand_word
+        global rand_json
         rand_json.insert_back(rand_word)
         for each_json in all_json : each_json.save()
         write_wrong_word(wrong_word_list, SETT.WRONG_WORD_PATH)
@@ -286,6 +289,23 @@ if __name__ == "__main__" :
     )
     show_txt.place(relx=0,rely=0,relheight=word_show_weight,relwidth=1)
 
+    def get_new_word():
+        global rand_json
+        rand_word = None
+        new_word_path = rand_json.word_file_path.replace(".","_new.")
+        if os.path.isfile(new_word_path) :
+            with open(new_word_path, "r", encoding='UTF-8') as new_fr:
+                new_word_file = json.loads(new_fr.read())
+                if new_word_file :
+                    try :
+                        rand_word = new_word_file.pop(0)
+                    except :
+                        return None # 有檔案 但是裡面沒有單字了
+                    with open(new_word_path, "w", encoding='UTF-8') as new_fw:
+                        json.dump(new_word_file, new_fw, indent = 4, ensure_ascii=False)
+                    rand_json.last_rand_indx = 0
+        return rand_word
+    
     def random_a_word():
         global rand_word
         global rand_word_indx
@@ -297,17 +317,9 @@ if __name__ == "__main__" :
             rand_word, rand_word_indx = rand_json.random_within_date()
             if rand_word == None :
                 # 查看有沒有新的單字
-                new_word_path = rand_json.word_file_path.replace(".","_new.")
-                # print("new_word_path :",new_word_path)
-                if os.path.isfile(new_word_path) :
-                    with open(new_word_path, "r", encoding='UTF-8') as new_fr:
-                        new_word_file = json.loads(new_fr.read())
-                        if new_word_file :
-                            rand_word = new_word_file.pop(0)
-                            with open(new_word_path, "w", encoding='UTF-8') as new_fw:
-                                json.dump(new_word_file, new_fw, indent = 4, ensure_ascii=False)
-                            rand_json.last_rand_indx = 0
-                            break
+                rand_word = get_new_word()
+                if rand_word != None :
+                        break
                 # 會執行到這裡代表沒有新的單字
                 print(rand_json.word_file_path, "已結束")
                 rand_json.save()
@@ -321,6 +333,7 @@ if __name__ == "__main__" :
         if rand_word == None :
             til_the_end()
 
+    def test_the_word():
         show_str = ""
         if rand_word["each_T"][rand_word_indx]["type"] == "sound" :
             show_str = "(SOUND!!) " + rand_word["each_T"][rand_word_indx]["eng"]
@@ -378,6 +391,7 @@ if __name__ == "__main__" :
                 button_test_hard.place_forget()
                 button_test_fail.place_forget()
             random_a_word()
+            test_the_word()
             button_show_ans.place(relx=0,rely=word_show_weight,relheight=1-word_show_weight,relwidth=1)
             button_status = 0
         else :
