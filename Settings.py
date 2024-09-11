@@ -37,6 +37,10 @@ else :
         ]
 STRICT_WEI = False
 
+type_files = [
+        Json_file(r"D:\dont_move\word\typo.json", 150, 1),
+        ]
+
 all_related_files = [
    r"D:\dont_move\word\word_similar.txt",
 ]

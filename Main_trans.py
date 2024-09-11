@@ -105,14 +105,19 @@ class Words :
             # # 處理每個字
             for each_word in self.old_word_list[indx]["each_T"] :
                 if main_type == "trans":
-                    if 'ex' not in each_word:
-                        each_word['ex'] = []
-                    if 'sound' not in each_word:
-                        each_word['sound'] = ""
-                    if 'type' not in each_word:
-                        each_word['type'] = "eng"
-                    if 'def' not in each_word:
-                        each_word['def'] = []
+                    if "ex" not in each_word:
+                        each_word["ex"] = []
+                    if "sound" not in each_word:
+                        each_word["sound"] = ""
+                    if "type" not in each_word:
+                        each_word["type"] = "eng"
+                    if "def" not in each_word:
+                        each_word["def"] = []
+                else :
+                    if "ex" not in each_word:
+                        each_word["ex"] = []
+                    if type(each_word["ex"]) != type([]) :
+                        each_word["ex"] = [each_word["ex"]]
             
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
@@ -238,6 +243,93 @@ def add_new_word(word_file_path, word):
     with open(word_file_path, "w") as fw :
         json.dump(file_word_list, fw, indent = 4, ensure_ascii=False)
 
+def get_new_word(rand_json):
+    rand_word = None
+    new_word_path = rand_json.word_file_path.replace(".","_new.")
+    if os.path.isfile(new_word_path) :
+        with open(new_word_path, "r", encoding='UTF-8') as new_fr:
+            new_word_file = json.loads(new_fr.read())
+            if new_word_file :
+                try :
+                    rand_word = new_word_file.pop(0)
+                except :
+                    return None # 有檔案 但是裡面沒有單字了
+                with open(new_word_path, "w", encoding='UTF-8') as new_fw:
+                    json.dump(new_word_file, new_fw, indent = 4, ensure_ascii=False)
+                rand_json.last_rand_indx = 0
+    return rand_word
+
+def random_a_word():
+    global rand_word
+    global rand_word_indx
+    global rand_json
+    global rand_weights
+    while all_json :
+        rand_json = choices(all_json, weights=rand_weights, k = 1)[0]
+        rand_word, rand_word_indx = rand_json.random_within_date()
+        if rand_word == None :
+            # 查看有沒有新的單字
+            rand_word = get_new_word(rand_json)
+            if rand_word != None :
+                break
+            # 會執行到這裡代表沒有新的單字
+            print(rand_json.word_file_path, "已結束")
+            rand_json.save()
+            all_json.remove(rand_json)
+            rand_weights = tuple(each_json.weight for each_json in all_json)
+            if SETT.STRICT_WEI :
+                if sum(rand_weights) == 0 :
+                    break
+        else :
+            break
+    if rand_word == None :
+        til_the_end()
+
+def test_the_word():
+    show_str = ""
+    if rand_word["each_T"][rand_word_indx]["type"] == "sound" :
+        show_str = "(SOUND!!) " + rand_word["each_T"][rand_word_indx]["eng"]
+    elif rand_word["each_T"][rand_word_indx]["type"] == "spell" :
+        show_str = "(spell)"
+        play_word_eng(False)
+    elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
+        global rand_word_chi
+        rand_word_chi = rand_word["each_T"][rand_word_indx]["chi"]
+        if rand_word_chi == "@" :
+            this_eng = rand_word["each_T"][rand_word_indx]["eng"]
+            for each_w in all_word_map[this_eng]["each_T"] : 
+                if each_w["eng"] == this_eng :
+                    rand_word_chi = each_w["chi"]
+        show_str = rand_word_chi + " (eng) " + str(len(rand_word["each_T"]))
+    else :
+        # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
+        if not Util.no_network and rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
+            show_str = "(spell)"
+            play_word_eng(False)
+            # There's still a chance that the first one might encounter bugs, but it rarely occurs.
+            time.sleep(0.2)
+            if Util.no_network : 
+                show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
+        else :
+            show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
+    show_txt.config(text = show_str)
+
+def play_word_eng(other = False, play_word = None, play_word_indx = None):
+    if play_word == None :
+        play_word = rand_word
+        play_word_indx = rand_word_indx
+    eng_and_other = ""
+    if "sound" in play_word["each_T"][play_word_indx] :
+        eng_and_other = play_word["each_T"][play_word_indx]["sound"]
+    if eng_and_other == "" :
+        eng_and_other = play_word["each_T"][play_word_indx]["eng"]
+
+    if other :
+        for indx, each_word in enumerate(play_word["each_T"]) :
+            if indx != play_word_indx :
+                eng_and_other += " , " + (each_word["sound"] if each_word["sound"] != "" else each_word["eng"])
+    Util.word_to_sound(eng_and_other)
+
 if __name__ == "__main__" :
     all_json = [Words(each_json_file) for each_json_file in SETT.all_json_files]
     # print("----------------------------------------")
@@ -288,90 +380,6 @@ if __name__ == "__main__" :
         command = lambda : play_word_eng(False),
     )
     show_txt.place(relx=0,rely=0,relheight=word_show_weight,relwidth=1)
-
-    def get_new_word():
-        global rand_json
-        rand_word = None
-        new_word_path = rand_json.word_file_path.replace(".","_new.")
-        if os.path.isfile(new_word_path) :
-            with open(new_word_path, "r", encoding='UTF-8') as new_fr:
-                new_word_file = json.loads(new_fr.read())
-                if new_word_file :
-                    try :
-                        rand_word = new_word_file.pop(0)
-                    except :
-                        return None # 有檔案 但是裡面沒有單字了
-                    with open(new_word_path, "w", encoding='UTF-8') as new_fw:
-                        json.dump(new_word_file, new_fw, indent = 4, ensure_ascii=False)
-                    rand_json.last_rand_indx = 0
-        return rand_word
-    
-    def random_a_word():
-        global rand_word
-        global rand_word_indx
-        global rand_json
-        global rand_weights
-        while all_json :
-            rand_json = choices(all_json, weights=rand_weights, k = 1)[0]
-            # print("random json :", rand_json.word_file_path)
-            rand_word, rand_word_indx = rand_json.random_within_date()
-            if rand_word == None :
-                # 查看有沒有新的單字
-                rand_word = get_new_word()
-                if rand_word != None :
-                        break
-                # 會執行到這裡代表沒有新的單字
-                print(rand_json.word_file_path, "已結束")
-                rand_json.save()
-                all_json.remove(rand_json)
-                rand_weights = tuple(each_json.weight for each_json in all_json)
-                if SETT.STRICT_WEI :
-                    if sum(rand_weights) == 0 :
-                        break
-            else :
-                break
-        if rand_word == None :
-            til_the_end()
-
-    def test_the_word():
-        show_str = ""
-        if rand_word["each_T"][rand_word_indx]["type"] == "sound" :
-            show_str = "(SOUND!!) " + rand_word["each_T"][rand_word_indx]["eng"]
-        elif rand_word["each_T"][rand_word_indx]["type"] == "spell" :
-            show_str = "(spell)"
-            play_word_eng(False)
-        elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
-            global rand_word_chi
-            rand_word_chi = rand_word["each_T"][rand_word_indx]["chi"]
-            if rand_word_chi == "@" :
-                print("find @")
-                this_eng = rand_word["each_T"][rand_word_indx]["eng"]
-                for each_w in all_word_map[this_eng]["each_T"] : 
-                    if each_w["eng"] == this_eng :
-                        rand_word_chi = each_w["chi"]
-            show_str = rand_word_chi + " (eng) " + str(len(rand_word["each_T"]))
-        else :
-            # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
-            if not Util.no_network and rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
-                show_str = "(spell)"
-                play_word_eng(False)
-                # There's still a chance that the first one might encounter bugs, but it rarely occurs.
-                time.sleep(0.2)
-                if Util.no_network : 
-                    show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
-            else :
-                show_str = rand_word["each_T"][rand_word_indx]["eng"] + " (Chi)"
-        show_txt.config(text = show_str)
-
-    def play_word_eng(other = False):
-        eng_and_other = (rand_word["each_T"][rand_word_indx]["sound"] 
-            if rand_word["each_T"][rand_word_indx]["sound"]!="" 
-            else rand_word["each_T"][rand_word_indx]["eng"])
-        if other :
-            for indx, each_word in enumerate(rand_word["each_T"]) :
-                if indx != rand_word_indx :
-                    eng_and_other += " , " + (each_word["sound"] if each_word["sound"] != "" else each_word["eng"])
-        Util.word_to_sound(eng_and_other)
     
     # 按鈕初始化
     button_show_ans = tk.Button(window,text = '顯示翻譯(up)',font = ('黑體', 15))
@@ -432,7 +440,7 @@ if __name__ == "__main__" :
                             show_str += "\n" + each_sim + " " + chi
                         elif each_sim in all_word_map :
                             for each_type in all_word_map[each_sim]["each_T"] :
-                                if each_type['eng'] == each_sim :
+                                if each_type["eng"] == each_sim :
                                     show_str += "\n" + each_sim + " " + each_type["chi"]
                                     break
                         else :
