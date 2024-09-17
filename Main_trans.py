@@ -162,7 +162,8 @@ class Words :
                     self.last_rand_indx = now_indx
                     # print("rand",self.start_indx, rand_range, now_indx)
                     return self.old_word_list.pop(now_indx), indx
-            self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
+            if SETT.TEST_FAIL == False:
+                self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
             self.start_indx += 1
             now_indx += 1
             if now_indx == len(self.old_word_list) :
@@ -177,6 +178,7 @@ class Words :
 
     def insert_back(self, random_word = None):
         if random_word != None :
+            print("self.last_rand_indx in rand : ", self.last_rand_indx, random_word["each_T"][0]["eng"])
             self.old_word_list.insert(self.last_rand_indx, random_word)
 
     def save(self):
@@ -236,10 +238,10 @@ def add_new_word(word_file_path, word):
     print(word_file_path)
     file_word_list = []
     if os.path.isfile(word_file_path) :
-        with open(word_file_path, "r") as fr :
+        with open(word_file_path, "r", encoding='UTF-8') as fr :
             file_word_list = json.loads(fr.read())
     file_word_list.append(word)
-    with open(word_file_path, "w") as fw :
+    with open(word_file_path, "w", encoding='UTF-8') as fw :
         json.dump(file_word_list, fw, indent = 4, ensure_ascii=False)
 
 def get_new_word(rand_json):
@@ -285,6 +287,17 @@ def random_a_word():
         til_the_end()
 
 def test_the_word():
+    global rand_word_chi
+    if "chi" in rand_word["each_T"][rand_word_indx] :
+        rand_word_chi = rand_word["each_T"][rand_word_indx]["chi"]
+    else :
+        rand_word_chi = ""
+    if rand_word_chi == "@" :
+        this_eng = rand_word["each_T"][rand_word_indx]["eng"]
+        for each_w in all_word_map[this_eng]["each_T"] : 
+            if each_w["eng"] == this_eng :
+                rand_word_chi = each_w["chi"]
+    
     show_str = ""
     if rand_word["each_T"][rand_word_indx]["type"] == "sound" :
         show_str = "(SOUND!!) " + rand_word["each_T"][rand_word_indx]["eng"]
@@ -292,13 +305,6 @@ def test_the_word():
         show_str = "(spell)"
         play_word_eng(False)
     elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
-        global rand_word_chi
-        rand_word_chi = rand_word["each_T"][rand_word_indx]["chi"]
-        if rand_word_chi == "@" :
-            this_eng = rand_word["each_T"][rand_word_indx]["eng"]
-            for each_w in all_word_map[this_eng]["each_T"] : 
-                if each_w["eng"] == this_eng :
-                    rand_word_chi = each_w["chi"]
         show_str = rand_word_chi + " (eng) " + str(len(rand_word["each_T"]))
     else :
         # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
