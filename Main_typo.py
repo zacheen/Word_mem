@@ -141,6 +141,15 @@ if __name__ == "__main__" :
         word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
         rand_json.add_word_first(word)
 
+        #Practice again
+        cor = word["each_T"][rand_word_indx]["eng"]
+        while True :
+            type_in = input("Practice again : ")
+            if type_in == "C" or type_in == cor :
+                break
+            print("正確 : "+cor)
+            print("輸入 : "+type_in)
+
     while True :
         random_a_word()
         show_str = test_the_word()
