@@ -90,7 +90,7 @@ class Words :
             # 確認沒有重複的
             for each_word in self.old_word_list[indx]["each_T"] :
                 if each_word["eng"] in all_word_map :
-                    if each_word["chi"] != "@" :
+                    if main_type == "trans" and each_word["chi"] != "@" :
                         print("same!! :", each_word["eng"])
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
@@ -164,7 +164,7 @@ class Words :
                     return self.old_word_list.pop(now_indx), indx
             if SETT.TEST_FAIL == False:
                 self.old_word_list.insert(0,(self.old_word_list.pop(now_indx)))
-            self.start_indx += 1
+                self.start_indx += 1
             now_indx += 1
             if now_indx == len(self.old_word_list) :
                 now_indx = self.start_indx
