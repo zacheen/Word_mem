@@ -86,12 +86,15 @@ class Words :
 
         status_count = 0
         know_count = 0
+        del_list = []
         for indx in range(len(self.old_word_list)):
             # 確認沒有重複的
             for each_word in self.old_word_list[indx]["each_T"] :
                 if each_word["eng"] in all_word_map :
                     if main_type == "trans" and each_word["chi"] != "@" :
                         print("same!! :", each_word["eng"])
+                        if SETT.TEST_FAIL :
+                            del_list.append(indx)
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
@@ -103,6 +106,7 @@ class Words :
                     del(self.old_word_list[indx]['similar'])
 
             # # 處理每個字
+            del_this_word = SETT.TEST_FAIL
             for each_word in self.old_word_list[indx]["each_T"] :
                 if main_type == "trans":
                     if "ex" not in each_word:
@@ -113,17 +117,27 @@ class Words :
                         each_word["type"] = "eng"
                     if "def" not in each_word:
                         each_word["def"] = []
+                    if each_word["status"] < SETT.WRONG_WORD_PASS :
+                        del_this_word = False
                 else :
                     if "ex" not in each_word:
                         each_word["ex"] = []
                     if type(each_word["ex"]) != type([]) :
                         each_word["ex"] = [each_word["ex"]]
             
+            if del_this_word :
+                del_list.append(indx)
+
             # 計算狀態 (同字根的單字只計算第一個)
             if self.old_word_list[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
                 know_count += 1
             status_count += self.old_word_list[indx]['each_T'][0]["status"]
         
+        if SETT.DEL_WRONG_WORDS :
+            del_list.reverse()
+            for indx in del_list :
+                del(self.old_word_list[indx])
+
         # 找 random 起使位置
         self.start_indx = len(self.old_word_list)
         break_flag = False
