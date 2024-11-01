@@ -168,11 +168,12 @@ class Words :
         if self.start_indx == rand_range :
             return None, -1
         now_indx = randrange(self.start_indx, rand_range)
+        rand_indx_mem = now_indx
         while len(self.old_word_list) > self.start_indx :
             for indx, this_word in enumerate(self.old_word_list[now_indx]["each_T"]) :
                 word_last_date = this_word["date"]
                 word_last_date = datetime.strptime(word_last_date, SETT.DATE_FORMAT)
-                if word_last_date < self.now_time :
+                if word_last_date <= self.now_time :
                     self.last_rand_indx = now_indx
                     # print("rand",self.start_indx, rand_range, now_indx)
                     return self.old_word_list.pop(now_indx), indx
@@ -182,6 +183,8 @@ class Words :
             now_indx += 1
             if now_indx == len(self.old_word_list) :
                 now_indx = self.start_indx
+            if SETT.TEST_FAIL and rand_indx_mem == now_indx :
+                break
         return None, -1
     
     def add_word_first(self, item):
@@ -192,7 +195,6 @@ class Words :
 
     def insert_back(self, random_word = None):
         if random_word != None :
-            print("self.last_rand_indx in rand : ", self.last_rand_indx, random_word["each_T"][0]["eng"])
             self.old_word_list.insert(self.last_rand_indx, random_word)
 
     def save(self):
@@ -316,7 +318,7 @@ def test_the_word():
     if rand_word["each_T"][rand_word_indx]["type"] == "sound" :
         show_str = "(SOUND!!) " + rand_word["each_T"][rand_word_indx]["eng"]
     elif rand_word["each_T"][rand_word_indx]["type"] == "spell" :
-        show_str = "(spell)"
+        show_str = "(sound only)"
         play_word_eng(False)
     elif rand_word["each_T"][rand_word_indx]["type"] == "eng" :
         show_str = rand_word_chi + " (eng) " + str(len(rand_word["each_T"]))
@@ -487,7 +489,7 @@ if __name__ == "__main__" :
             shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
             if word["each_T"][rand_word_indx]["status"] > (SETT.long_term_mem_threshold+2) :
                 shift_days += randrange(0,4)
-            elif word["each_T"][rand_word_indx]["status"] > 3 :
+            elif word["each_T"][rand_word_indx]["status"] > 4 :
                 shift_days += randrange(-1,2)
             word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             
@@ -515,11 +517,15 @@ if __name__ == "__main__" :
         switch_button()
 
     def test_again(word):
-        word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-1, 0)
-        shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
-        word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
-        add_wrong_word(word, again_word_list)
-        rand_json.add_word_first(word)
+        if SETT.TEST_FAIL :
+            # Sometimes, the same word might appear twice.
+            rand_json.insert_back(word)
+        else :
+            word["each_T"][rand_word_indx]["status"] = max(word["each_T"][rand_word_indx]["status"]-1, 0)
+            shift_days = SETT.DAYS[word["each_T"][rand_word_indx]["status"]]
+            word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
+            add_wrong_word(word, again_word_list)
+            rand_json.add_word_first(word)
         switch_button()
 
     def test_fail(word):

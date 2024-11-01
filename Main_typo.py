@@ -91,7 +91,7 @@ if __name__ == "__main__" :
             possible_method.remove(0)
 
         rand_method = choices(possible_method, k=1)[0]
-        print("possible_method : ",possible_method, rand_method)
+        # print("possible_method : ",possible_method, rand_method)
         show_str = ""
         if rand_method == 0 :
             show_str += rand_word["each_T"][rand_word_indx]["eng"]

@@ -1,5 +1,7 @@
 TEST_FAIL = True
 TEST_FAIL = False
+DEL_WRONG_WORDS = True
+DEL_WRONG_WORDS = False
 class Json_file:
     def __init__(self, word_file_path, NEAR_FIRST, weight = 1):
         self.word_file_path = word_file_path
@@ -38,8 +40,8 @@ else :
 STRICT_WEI = False
 
 type_files = [
-        Json_file(r"D:\dont_move\word\typo.json", 150, 1),
-        ]
+    Json_file(r"D:\dont_move\word\typo.json", 150, 1),
+]
 
 all_related_files = [
    r"D:\dont_move\word\word_similar.txt",
