@@ -87,7 +87,7 @@ class Words :
         status_count = 0
         know_count = 0
         del_list = []
-        for indx in range(len(self.old_word_list)):
+        for indx in range(len(self.old_word_list)-1,-1,-1):
             # 確認沒有重複的
             for each_word in self.old_word_list[indx]["each_T"] :
                 if each_word["eng"] in all_word_map :
@@ -134,7 +134,9 @@ class Words :
             status_count += self.old_word_list[indx]['each_T'][0]["status"]
         
         if SETT.DEL_WRONG_WORDS :
+            del_list = list(set(del_list))
             del_list.reverse()
+            print("del_list :",del_list)
             for indx in del_list :
                 del(self.old_word_list[indx])
 
