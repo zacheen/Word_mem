@@ -53,7 +53,6 @@ def write_wrong_word(wrong_word_list, file_path):
     if os.path.isfile(file_path) :
         fr = open(file_path, "r", encoding='UTF-8')
         read_date = fr.readline()
-        print("read_date :",read_date)
 
         old_wrong_word_list = json.loads(fr.read())
         wrong_word_list = old_wrong_word_list + wrong_word_list
@@ -77,7 +76,8 @@ class Words :
         fr = open(self.word_file_path, "r", encoding='UTF-8')
         # 練習錯誤的檔案 第一行用來紀錄的日期 所以要排除
         if SETT.TEST_FAIL :
-            self.read_date = fr.readline()
+            read_date = datetime.strptime(fr.readline()[:-1], SETT.DATE_FORMAT)
+            self.another_day = read_date < datetime.now()
         self.old_word_list = json.loads(fr.read())         # 沒有超過日期的單字
         fr.close()
         self.new_word_list = []
@@ -92,7 +92,11 @@ class Words :
                     if main_type == "trans" and each_word["chi"] != "@" :
                         print("same!! :", each_word["eng"])
                         if SETT.TEST_FAIL :
-                            del_list.append(indx)
+                            if SETT.DEL_DUPLICATE :
+                                del_list.append(indx)
+                            # if 日期不相同 and self.another_day :
+                            #     # 把前一天的更新
+                            #     del_list.append(indx)
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
@@ -115,7 +119,7 @@ class Words :
                         each_word["type"] = "eng"
                     if "def" not in each_word:
                         each_word["def"] = []
-                    if each_word["status"] < SETT.WRONG_WORD_PASS :
+                    if SETT.TEST_FAIL and (each_word["status"] <= SETT.WRONG_WORD_PASS or not self.another_day) :
                         del_this_word = False
                 else :
                     if "ex" not in each_word:
@@ -131,7 +135,7 @@ class Words :
                 know_count += 1
             status_count += self.old_word_list[indx]['each_T'][0]["status"]
         
-        if SETT.DEL_WRONG_WORDS :
+        if SETT.TEST_FAIL :
             del_list = list(set(del_list))
             del_list.reverse()
             print("del_list :",del_list)
@@ -215,7 +219,7 @@ class Words :
         # 寫入
         with open(self.word_file_path, "w", encoding='UTF-8') as fw:
             if SETT.TEST_FAIL :
-                fw.write(self.read_date)
+                fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
             json.dump(all_words, fw, indent = 4, ensure_ascii=False)
         # 備份
         if not SETT.TEST_FAIL :

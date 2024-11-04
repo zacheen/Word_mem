@@ -1,7 +1,6 @@
 TEST_FAIL = True
 TEST_FAIL = False
-DEL_WRONG_WORDS = True
-DEL_WRONG_WORDS = False
+DEL_DUPLICATE = False
 class Json_file:
     def __init__(self, word_file_path, NEAR_FIRST, weight = 1):
         self.word_file_path = word_file_path
