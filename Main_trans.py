@@ -46,26 +46,24 @@ def add_wrong_word(word, word_list):
 def write_wrong_word(wrong_word_list, file_path):
     if SETT.TEST_FAIL :
         return
-    another_day = True
+
+    read_date = ""
     # 讀取檔案的日期
     fr = None
     if os.path.isfile(file_path) :
         fr = open(file_path, "r", encoding='UTF-8')
-        wrong_date = fr.readline()
-        wrong_date = datetime.strptime(wrong_date[:-1], SETT.DATE_FORMAT)
-        if wrong_date > datetime.now() :
-            another_day = False
-    
-    if another_day or fr == None :
-        pass
-    else :
+        read_date = fr.readline()
+        print("read_date :",read_date)
+
         old_wrong_word_list = json.loads(fr.read())
         wrong_word_list = old_wrong_word_list + wrong_word_list
-    if fr :
+
         fr.close()
     
     fw = open(file_path, "w", encoding='UTF-8')
-    fw.write((datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n")
+    if read_date == "" :
+        read_date = (datetime.now() + timedelta(days=1)).strftime(SETT.DATE_FORMAT)+"\n"
+    fw.write(read_date)
     json.dump(wrong_word_list, fw, indent = 4, ensure_ascii=False)
     fw.close()
                     
