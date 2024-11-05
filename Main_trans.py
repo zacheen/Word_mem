@@ -34,12 +34,13 @@ def add_wrong_word(word, word_list):
         for each_sim in sim_res :
             if each_sim == this_eng_word :
                 continue
-            # 相似的也參與錯誤考試中 ??
+            # 相似的也參與錯誤考試中
             if each_sim in all_word_map :
                 word_whole = all_word_map[each_sim]
                 for each_w in word_whole["each_T"] :
                     if each_w["eng"] == each_sim :
                         each_w["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
+                        each_w["status"] = min(5, each_w["status"])
                 word_list.append(word_whole)
             # else # 不用 else 因為通常是很簡單的
 
@@ -91,12 +92,8 @@ class Words :
                 if each_word["eng"] in all_word_map :
                     if main_type == "trans" and each_word["chi"] != "@" :
                         print("same!! :", each_word["eng"])
-                        if SETT.TEST_FAIL :
-                            if SETT.DEL_DUPLICATE :
-                                del_list.append(indx)
-                            # if 日期不相同 and self.another_day :
-                            #     # 把前一天的更新
-                            #     del_list.append(indx)
+                        if SETT.TEST_FAIL and SETT.DEL_DUPLICATE :
+                            del_list.append(indx)
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
 
