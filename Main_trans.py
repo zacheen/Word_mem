@@ -24,7 +24,7 @@ def add_wrong_word(word, word_list):
     new_wrong_word = copy.deepcopy(word)
     # 這裡改錯誤的那個單字的 info
     new_wrong_word["each_T"][rand_word_indx]["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
-    new_wrong_word["each_T"][rand_word_indx]["status"] = min(new_wrong_word["each_T"][rand_word_indx]["status"], 5)
+    new_wrong_word["each_T"][rand_word_indx]["status"] = min(new_wrong_word["each_T"][rand_word_indx]["status"], SETT.WRONG_STATUS)
     word_list.append(new_wrong_word)
 
     # 從所有的單字中找出 similar 連結的單字
@@ -36,11 +36,11 @@ def add_wrong_word(word, word_list):
                 continue
             # 相似的也參與錯誤考試中
             if each_sim in all_word_map :
-                word_whole = all_word_map[each_sim]
+                word_whole = copy.deepcopy(all_word_map[each_sim])
                 for each_w in word_whole["each_T"] :
                     if each_w["eng"] == each_sim :
                         each_w["date"] = datetime.now().strftime(SETT.DATE_FORMAT)
-                        each_w["status"] = min(5, each_w["status"])
+                        each_w["status"] = min(SETT.WRONG_STATUS, each_w["status"])
                 word_list.append(word_whole)
             # else # 不用 else 因為通常是很簡單的
 
@@ -92,7 +92,7 @@ class Words :
                 if each_word["eng"] in all_word_map :
                     if main_type == "trans" and each_word["chi"] != "@" :
                         print("same!! :", each_word["eng"])
-                        if SETT.TEST_FAIL and SETT.DEL_DUPLICATE :
+                        if SETT.TEST_FAIL or SETT.DEL_DUPLICATE :
                             del_list.append(indx)
                 else :
                     all_word_map[each_word["eng"]] = self.old_word_list[indx]
