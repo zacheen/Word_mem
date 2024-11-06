@@ -326,7 +326,7 @@ def test_the_word():
     else :
         # 如果等級滿了就練英文聽力 (聽到要知道是什麼單字)
         if not Util.no_network and rand_word["each_T"][rand_word_indx]["status"] >= SETT.FULL_LEVEL and randrange(0,2) == 0 :
-            show_str = "(spell)"
+            show_str = "(sound only)"
             play_word_eng(False)
             # There's still a chance that the first one might encounter bugs, but it rarely occurs.
             time.sleep(0.2)

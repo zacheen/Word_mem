@@ -15,8 +15,8 @@ def next_line():
 
 all_word = []
 while True :
-    split_method = "sound"
-    split_method = "ChiToEng"
+    # split_method = "sound"
+    split_method = "translate"
     try :
         if split_method == "sound" :
             read_line = next_line()
@@ -45,14 +45,14 @@ while True :
                     }
                 ]
             }
-        elif split_method == "ChiToEng" :
+        elif split_method == "translate" :
             read_line = next_line()
-            read_line = read_line.split(" ")
+            read_line = read_line.split("\t")
             # print(read_line)
-            eng_word = " ".join(read_line[:-1])
-            chi_word = read_line[-1]
+            eng_word = read_line[2] # " ".join(read_line[:-1])
+            chi_word = read_line[3]
             
-            chi_word = chi_word.replace("(","").replace(")","")
+            # chi_word = chi_word.replace("(","").replace(")","")
             each_Word = \
             {
                 "association": "",
@@ -62,11 +62,11 @@ while True :
                     {
                         "eng": eng_word,
                         "chi": chi_word,
-                        "status": 0,
+                        "status": 7,
                         "date": "2020/01/01",
                         "ex": [],
                         "sound": "",
-                        "type": "eng"
+                        "type": "chi"
                     }
                 ]
             }

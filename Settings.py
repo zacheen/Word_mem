@@ -21,6 +21,7 @@ PLAY_SOUND = True
 WRONG_WORD_PATH = r"G:\我的雲端硬碟\__wrong_word.txt"
 AGAIN_WORD_PATH = r"G:\我的雲端硬碟\__again_word.txt"
 WRONG_WORD_PASS = 6
+WRONG_STATUS = 5
 
 if TEST_FAIL :
     all_json_files = [
