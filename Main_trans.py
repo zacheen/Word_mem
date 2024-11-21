@@ -116,8 +116,15 @@ class Words :
                         each_word["type"] = "eng"
                     if "def" not in each_word:
                         each_word["def"] = []
-                    if SETT.TEST_FAIL and (each_word["status"] <= SETT.WRONG_WORD_PASS or not self.another_day) :
-                        del_this_word = False
+                    if SETT.TEST_FAIL :
+                        if "2099" in each_word["date"] :
+                            pass
+                        elif each_word["status"] <= SETT.WRONG_WORD_PASS:
+                            del_this_word = False
+                        elif SETT.CLEAR_PASS :
+                            pass
+                        elif not self.another_day :
+                            del_this_word = False    
                 else :
                     if "ex" not in each_word:
                         each_word["ex"] = []
@@ -495,7 +502,7 @@ if __name__ == "__main__" :
             word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
             
             # 如果前一個單字已經 滿state
-            if word["each_T"][rand_word_indx]["status"] >= SETT.D45_indx :
+            if word["each_T"][rand_word_indx]["status"] >= SETT.D49_indx :
                 next_indx = rand_word_indx + 1
                 if next_indx == len(word["each_T"]) :
                     next_indx = 0

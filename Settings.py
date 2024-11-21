@@ -1,5 +1,7 @@
+# True False
 TEST_FAIL = True
 TEST_FAIL = False
+CLEAR_PASS = False
 DEL_DUPLICATE = False
 class Json_file:
     def __init__(self, word_file_path, NEAR_FIRST, weight = 1):
@@ -11,9 +13,9 @@ class Related_file:
     def __init__(self, related_file_path):
         self.related_file_path = related_file_path
 
-DAYS = [0,1,1,2,3,4,5,7,15,20,26,33,45,90,120] # 180 天感覺有時候都忘了
+DAYS = [0,1,1,2,3,4,5,7,10,15,22,33,49,75,120] # 180 天感覺有時候都忘了
 long_term_mem_threshold = DAYS.index(7)
-D45_indx = DAYS.index(45)
+D49_indx = DAYS.index(49)
 FULL_LEVEL = len(DAYS) - 1
 print("long_term indx :", long_term_mem_threshold)
 DATE_FORMAT = r"%Y/%m/%d"
