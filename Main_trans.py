@@ -160,12 +160,13 @@ class Words :
             if break_flag :
                 break
         
-        print(f"--  {self.word_file_path}  --------------------------------")
-        print("今日已讀單字 :", self.start_indx) # 有點不准，不過不會差太多
-        print("總共讀取單字數量 :", len(self.old_word_list))
-        # print("學會單字數量 :", know_count)
-        # print("錯誤單字數量 :", len(self.old_word_list) - know_count)
-        print("status 平均 :", status_count / len(self.old_word_list))
+        if len(self.old_word_list) != 0 :
+            print(f"--  {self.word_file_path}  --------------------------------")
+            print("今日已讀單字 :", self.start_indx) # 有點不准，不過不會差太多
+            print("總共讀取單字數量 :", len(self.old_word_list))
+            # print("學會單字數量 :", know_count)
+            # print("錯誤單字數量 :", len(self.old_word_list) - know_count)
+            print("status 平均 :", status_count / len(self.old_word_list))
 
     # 方法1 : 隨機直到日期以內
     # 方法2 : 先挑出日期以內再隨機 (但是我希望可以不要弄亂順序)
@@ -210,15 +211,16 @@ class Words :
         print(f"--  {self.word_file_path}  --------------------------------")
         status_count = 0
         know_count = 0
-        print("總共寫入單字數量 :", len(all_words))
-        for indx in range(len(all_words)):
-            if all_words[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
-                know_count += 1
-            status_count += all_words[indx]['each_T'][0]["status"]
-        print("今日已讀單字 :", self.start_indx)
-        # print("學會單字數量 :", know_count)
-        # print("錯誤單字數量 :", len(all_words) - know_count)
-        print("status 平均 :", status_count / len(all_words))
+        if len(self.old_word_list) != 0 :
+            print("總共寫入單字數量 :", len(all_words))
+            for indx in range(len(all_words)):
+                if all_words[indx]['each_T'][0]["status"] >= SETT.long_term_mem_threshold :
+                    know_count += 1
+                status_count += all_words[indx]['each_T'][0]["status"]
+            print("今日已讀單字 :", self.start_indx)
+            # print("學會單字數量 :", know_count)
+            # print("錯誤單字數量 :", len(all_words) - know_count)
+            print("status 平均 :", status_count / len(all_words))
 
         # 寫入
         with open(self.word_file_path, "w", encoding='UTF-8') as fw:

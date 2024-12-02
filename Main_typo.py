@@ -115,7 +115,7 @@ if __name__ == "__main__" :
         word["each_T"][rand_word_indx]["date"] = (datetime.now() + timedelta(days=shift_days)).strftime(SETT.DATE_FORMAT)
         
         # 如果前一個單字已經 滿state
-        if word["each_T"][rand_word_indx]["status"] >= SETT.D45_indx :
+        if word["each_T"][rand_word_indx]["status"] >= SETT.D49_indx :
             next_indx = rand_word_indx + 1
             if next_indx == len(word["each_T"]) :
                 next_indx = 0
