@@ -321,6 +321,7 @@ def test_the_word():
     if rand_word_chi == "@" :
         this_eng = rand_word["each_T"][rand_word_indx]["eng"]
         for each_w in all_word_map[this_eng]["each_T"] : 
+            # 如果沒有找到是因為 紀錄原本中文的檔案沒有讀取
             if each_w["eng"] == this_eng :
                 rand_word_chi = each_w["chi"]
     
